@@ -29,7 +29,7 @@ Status: done
 
 **B4 · NFC, hashing and location** · Owner: Claude · Files: `NFCService`, `CardHasher`, `LocationService` · *Done when:* on your iPhone, a debug button reads your Husky ID twice and shows the same short code both times, and `currentPlace()` returns a name within 2 seconds or nil. **Do this early: it's the riskiest card.** Record which cards give stable IDs in DECISIONS.md.
 
-Status: doing (built and installed; waiting on the two-scan test with a real card)
+Status: done (Husky ID reads the same code twice; location OK)
 
 **B5 · Components** · Owner: Claude · Files: `Components/*` · *Done when:* Badge (both sizes, all 6 colors), Stamp, buttons and TapButton look right in Xcode Previews on a paper background, using Theme only.
 

@@ -14,3 +14,4 @@
 - Known limit: card hashes use a salt shipped in the app and there's no scan rate limit. Fine for the demo; mention as future work.
 - You tap someone's card once: Person shows one "Where you met" section, and a repeat scan shows "You've met before" instead of a met-again count. The DB contract is unchanged (scan_card still returns times_met).
 - Design v3 replaces the violet look: paper/ink/stamp red, HELLO stickers, Archivo (static instances) + Caveat Brush + SF Pro, BadgeColor red/blue/green/yellow/pink/black. Live DB default is still 'lilac' until schema is re-run; the app always sends badge_color so it doesn't matter.
+- Husky ID gives a stable NFC ID (same short code on repeat scans, tested Sat 1:15 PM). Other cards not yet recorded.
