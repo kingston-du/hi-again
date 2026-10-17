@@ -8,7 +8,9 @@ struct HiAgainApp: App {
         WindowGroup {
             Group {
                 #if DEBUG
-                if ProcessInfo.processInfo.arguments.contains("-gallery") { DebugGalleryView() } else { RootView() }
+                if ProcessInfo.processInfo.arguments.contains("-gallery") { DebugGalleryView() }
+                else if ProcessInfo.processInfo.arguments.contains("-met") { ScanResultView(result: .debugMet) }
+                else { RootView() }
                 #else
                 RootView()
                 #endif

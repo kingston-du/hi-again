@@ -30,4 +30,11 @@ struct DebugGalleryView: View {
         .background(Theme.paper)
     }
 }
+extension ScanResult {
+    static let debugMet = ScanResult(
+        outcome: .met(Profile(id: UUID(), firstName: "Maya", lastName: "Lee", badgeColor: .blue,
+                              instagram: "maya.codes", snapchat: nil, linkedin: "mayalee"),
+                      meetingId: UUID(), timesMet: 1),
+        place: Place(name: "HUB", lat: 0, lng: 0), at: .now)
+}
 #endif
