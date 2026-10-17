@@ -16,7 +16,7 @@ Last updated: Sat 3:51 PM by Cursor
 
 ## In progress
 - On-phone test of the demo path (needs Apple sign in + a second account with a linked card)
-- **A8 go-live (kingston):** (1) paste `supabase/qr_meet.sql` in SQL Editor, (2) Auth → Providers → enable **Anonymous**, (3) push repo + set Pages source to GitHub Actions, (4) add repo secrets `SUPABASE_URL` + `SUPABASE_ANON_KEY`, (5) confirm `MEET_PAGE_BASE_URL` in Info.plist matches the live Pages URL
+- **A8 go-live left for kingston:** (1) paste `supabase/qr_meet.sql` in SQL Editor, (2) Auth → Providers → enable **Anonymous**. Steps 3–5 done: repo pushed, Pages = Actions, secrets set, `MEET_PAGE_BASE_URL` = `https://kingston-du.github.io/hi-again/meet.html`
 
 ## Next
 - B10 bug bash, then CHECKPOINT
