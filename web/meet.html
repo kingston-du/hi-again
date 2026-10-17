@@ -9,7 +9,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,600..900&family=Caveat+Brush&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js"></script>
-  <script src="config.js"></script>
+  <!-- ?v= busts Safari cache after deploy (xcconfig URL fix) -->
+  <script src="config.js?v=3"></script>
   <style>
     :root {
       --paper: #F2F2EE;
@@ -516,40 +517,60 @@
         return h.replace(/^\/+|\/+$/g, "").trim();
       }
 
+      function fail(title, detail) {
+        $("panel-loading").innerHTML =
+          '<div class="center"><p class="lead">' + title + '</p><p class="muted">' + detail + '</p></div>';
+      }
+
       async function boot() {
-        slug = (qs("b") || "").trim().toLowerCase();
-        if (!slug) {
-          show("missing");
-          return;
-        }
+        try {
+          slug = (qs("b") || "").trim().toLowerCase();
+          if (!slug) {
+            show("missing");
+            return;
+          }
 
-        const cfg = window.HI_AGAIN;
-        if (!cfg || !cfg.supabaseUrl || !cfg.supabaseAnonKey
-            || cfg.supabaseUrl.includes("YOUR-PROJECT")
-            || cfg.supabaseAnonKey.includes("YOUR-ANON")) {
-          $("panel-loading").innerHTML =
-            '<div class="center"><p class="lead">Almost ready</p><p class="muted">Add web/config.js from config.example.js with your Supabase URL and anon key.</p></div>';
-          return;
-        }
+          const cfg = window.HI_AGAIN;
+          if (!cfg || !cfg.supabaseUrl || !cfg.supabaseAnonKey
+              || cfg.supabaseUrl.includes("YOUR-PROJECT")
+              || cfg.supabaseAnonKey.includes("YOUR-ANON")) {
+            fail("Almost ready", "Add web/config.js from config.example.js with your Supabase URL and anon key.");
+            return;
+          }
 
-        client = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey, {
-          auth: { persistSession: true, autoRefreshToken: true }
-        });
+          // Old deploys accidentally shipped the Xcode xcconfig escape form.
+          let supabaseUrl = String(cfg.supabaseUrl).replace("https:/$()/", "https://").replace("http:/$()/", "http://");
+          if (!supabaseUrl.startsWith("https://") || supabaseUrl.includes("/$()/")) {
+            fail("Couldn’t load", "Bad API URL in config. Redeploy Pages.");
+            return;
+          }
 
-        const { data, error } = await client.rpc("public_badge", { p_slug: slug });
-        if (error) {
-          console.error(error);
-          $("panel-loading").innerHTML =
-            '<div class="center"><p class="lead">Couldn’t load</p><p class="muted">Check your connection and try again.</p></div>';
-          return;
+          if (!window.supabase || typeof window.supabase.createClient !== "function") {
+            fail("Couldn’t load", "Scripts blocked — try again without content blockers.");
+            return;
+          }
+
+          client = window.supabase.createClient(supabaseUrl, cfg.supabaseAnonKey, {
+            auth: { persistSession: false, autoRefreshToken: false }
+          });
+
+          const { data, error } = await client.rpc("public_badge", { p_slug: slug });
+          if (error) {
+            console.error(error);
+            fail("Couldn’t load", error.message || "Check your connection and try again.");
+            return;
+          }
+          if (!data) {
+            show("missing");
+            return;
+          }
+          paintHost(data);
+          renderColors();
+          show("ready");
+        } catch (ex) {
+          console.error(ex);
+          fail("Couldn’t load", (ex && ex.message) ? ex.message : "Something went wrong.");
         }
-        if (!data) {
-          show("missing");
-          return;
-        }
-        paintHost(data);
-        renderColors();
-        show("ready");
       }
 
       $("meet-form").addEventListener("submit", async (e) => {
