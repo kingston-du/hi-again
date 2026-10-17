@@ -38,8 +38,11 @@ jobs:
           fi
           python3 << 'PY'
           import json, os
-          url = os.environ["SUPABASE_URL"]
+          # Secrets.xcconfig uses https:/$()/host to escape // — normalize for the browser.
+          url = os.environ["SUPABASE_URL"].replace("https:/$()/", "https://").replace("http:/$()/", "http://")
           key = os.environ["SUPABASE_ANON_KEY"]
+          if "/$()/" in url or not url.startswith("https://"):
+              raise SystemExit("SUPABASE_URL must be a normal https://…supabase.co URL")
           body = (
               "window.HI_AGAIN = {\n"
               f"  supabaseUrl: {json.dumps(url)},\n"
