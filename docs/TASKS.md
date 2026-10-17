@@ -5,13 +5,13 @@ Full spec: docs/PLAN.md. Rules: AGENTS.md.
 
 ### Base MVP
 
-**B0 · Setup** · Owner: kingston (Claude guides) · Part 5 · *Done when:* the empty app runs on your iPhone, Supabase keys are in `Secrets.xcconfig`, and the fonts are in the folder.
+**B0 · Setup** · Owner: kingston (Claude guides) · Part 5, minus Xcode steps 1, 3 and 4 (Claude generated the project with XcodeGen) · *Done when:* the empty app runs on your iPhone, Supabase keys are in `Secrets.xcconfig`, and the fonts are in the folder.
 
 Status: todo
 
 **B1 · Scaffold** · Owner: Claude · Files: everything in the repo layout except Views' bodies and service internals · *Done when:* `Theme.swift` has every token and font from Part 2 (fonts registered via `UIAppFonts` in Info), Models and `ScanOutcome`/`ClaimResult`/`Place` exist exactly as in Part 3, services exist as stubs with the exact signatures, `RootView` routes to placeholder views, Info has `NFCReaderUsageDescription`, `NSLocationWhenInUseUsageDescription` and `com.apple.developer.nfc.readersession.iso7816.select-identifiers` (include `A0000002471001` so ISO 7816 cards are detected), `scripts/pack.sh` works, and it builds.
 
-Status: todo
+Status: done (font files arrive with B0; names already listed in UIAppFonts)
 
 **B2 · Database** · Owner: DeepSeek (Claude reviews) · Files: `supabase/schema.sql` · *Done when:* one script creates the 3 tables, RLS policies and 2 functions exactly per Part 3 and grants execute to `authenticated`. kingston pastes it into Supabase → SQL Editor and it runs clean.
 
@@ -83,3 +83,6 @@ Status: todo
 
 ---
 
+**A8 · Public badge page** · Owners: DeepSeek (SQL), Cursor (`web/u.html`), Claude (QR on Me) · Files: `supabase/public_badge.sql`, `web/u.html`, `Views/MeView.swift` · Anyone without the app sees your badge: Me shows a QR (and Share link) for `https://<github-pages-url>/u.html?b=<slug>`. A `slug text unique` column on profiles (8 random chars) and `public_badge(p_slug text) returns jsonb` (security definer, executable by `anon`, returns only first name, last name, badge color and socials). The page is styled with the same tokens and has social buttons plus a "Get hi again" line. Shares the GitHub Pages setup with A3. *Done when:* scanning the QR with a phone that doesn't have the app opens the badge in Safari.
+
+Status: todo
