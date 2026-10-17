@@ -1,6 +1,6 @@
 import Foundation
 
-enum BadgeColor: String, Codable, CaseIterable { case peach, lilac, mint, butter, sky, rose }
+enum BadgeColor: String, Codable, CaseIterable { case red, blue, green, yellow, pink, black }
 
 struct Profile: Codable, Identifiable, Hashable {
     let id: UUID; var firstName: String; var lastName: String?

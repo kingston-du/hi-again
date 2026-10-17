@@ -12,7 +12,7 @@ struct DebugScanView: View {
             Section("Card") {
                 Button("Scan a card") { Task { await scan() } }
                 ForEach(Array(reads.enumerated()), id: \.offset) { i, code in
-                    Text("Read \(i + 1): CARD \(code)").font(Theme.mono(14))
+                    Text("Read \(i + 1): CARD \(code)").font(Theme.ui(14))
                 }
                 if reads.count >= 2 {
                     Text(Set(reads.suffix(2)).count == 1 ? "Same both times ✓" : "Different ✗ (this card won't work)")
@@ -22,7 +22,7 @@ struct DebugScanView: View {
             }
             Section("Location") {
                 Button("Get place") { Task { await place() } }
-                Text(placeLine).font(Theme.mono(14))
+                Text(placeLine).font(Theme.ui(14))
             }
         }
         .navigationTitle("Debug scan")

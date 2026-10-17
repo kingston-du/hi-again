@@ -22,9 +22,12 @@
 	<array><string>A0000002471001</string></array>
 	<key>UIAppFonts</key>
 	<array>
-		<string>BricolageGrotesque-ExtraBold.ttf</string>
-		<string>InstrumentSerif-Italic.ttf</string>
-		<string>GeistMono-Medium.ttf</string>
+		<string>Archivo-ExtraBoldSemiCondensed.ttf</string>
+		<string>Archivo-BlackSemiExpanded.ttf</string>
+		<string>Archivo-BlackExpanded.ttf</string>
+		<string>Archivo-SemiBold.ttf</string>
+		<string>Archivo-BoldCondensed.ttf</string>
+		<string>CaveatBrush-Regular.ttf</string>
 	</array>
 	<key>SUPABASE_URL</key><string>$(SUPABASE_URL)</string>
 	<key>SUPABASE_ANON_KEY</key><string>$(SUPABASE_ANON_KEY)</string>

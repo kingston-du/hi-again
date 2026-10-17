@@ -1,59 +1,78 @@
 import SwiftUI
 
-/// The only place colors, fonts, spacing, radius, shadow and motion are defined (docs/PLAN.md Part 2).
+/// The only place colors, fonts, spacing, radius, shadow and motion are defined (docs/design/DESIGN-v3.md).
 enum Theme {
     // MARK: Colors
-    static let paper = Color(hex: 0xF3F0FA)
-    static let card = Color(hex: 0xFFFFFF)
-    static let ink = Color(hex: 0x1C1530)
-    static let inkSoft = Color(hex: 0x6E6488)
-    static let line = Color(hex: 0xE2DCF0)
-    static let violet = Color(hex: 0x5A3FF0)
-    static let butter = Color(hex: 0xFFEDB0)
+    static let paper = Color(hex: 0xF2F2EE)     // every screen background
+    static let surface = Color(hex: 0xFFFFFF)   // grouped rows, inputs, the note card
+    static let ink = Color(hex: 0x141414)       // text, primary buttons
+    static let muted = Color(hex: 0x66665F)     // secondary text
+    static let faint = Color(hex: 0x9A9A92)     // placeholders, chevrons
+    static let rule = Color(hex: 0xDDDDD6)      // borders, section rules
+    static let ruleSoft = Color(hex: 0xECECE6)  // dividers inside a group
+    static let stamp = Color(hex: 0xD23B24)     // stamps, scan button, scan screen, wordmark period. Nothing else
+    static let danger = Color(hex: 0xB8301C)    // Unlink, Remove
+    static let unknown = Color(hex: 0xF2C230)   // "Not on the app yet" screen
+    static let noteLine = Color(hex: 0xC7D4EC)  // blue rules on the note card
 
     static func badge(_ color: BadgeColor) -> Color {
         switch color {
-        case .peach: Color(hex: 0xFFD6C2)
-        case .lilac: Color(hex: 0xD9CFFF)
-        case .mint: Color(hex: 0xC9F0DE)
-        case .butter: Color(hex: 0xFFEDB0)
-        case .sky: Color(hex: 0xCDE4FF)
-        case .rose: Color(hex: 0xFFD3E2)
+        case .red: Color(hex: 0xD23B24)
+        case .blue: Color(hex: 0x2556C4)
+        case .green: Color(hex: 0x1D7A4F)
+        case .yellow: Color(hex: 0xF2C230)
+        case .pink: Color(hex: 0xC83C78)
+        case .black: Color(hex: 0x1E1E1E)
         }
     }
 
+    /// Text color on a badge's color band ("HELLO", the Me initial).
+    static func onBadge(_ color: BadgeColor) -> Color { color == .yellow ? ink : .white }
+
     // MARK: Fonts
-    /// Bricolage Grotesque 800. Titles and names; pair with `.tracking(Theme.displayTracking)`.
-    static func display(_ size: CGFloat) -> Font { .custom("BricolageGrotesque-ExtraBold", size: size) }
-    /// Instrument Serif Italic. One accent word per headline, and notes.
-    static func accent(_ size: CGFloat) -> Font { .custom("InstrumentSerif-Italic", size: size) }
-    /// Geist Mono 500. Places, times, labels; use ALL CAPS with `.tracking(Theme.monoTracking)`.
-    static func mono(_ size: CGFloat) -> Font { .custom("GeistMono-Medium", size: size) }
-    /// System UI font for buttons and fields.
-    static func ui(_ size: CGFloat, weight: Font.Weight = .regular) -> Font { .system(size: size, weight: weight) }
+    /// Screen titles and headlines: Archivo ExtraBold, width 87.5. 30 to 38 pt, tracking -0.3.
+    static func title(_ size: CGFloat = 34) -> Font { .custom("Archivo-ExtraBoldSemiCondensed", size: size) }
+    /// The `hi again.` wordmark: Archivo Black, width 112.
+    static func wordmark(_ size: CGFloat = 22) -> Font { .custom("Archivo-BlackSemiExpanded", size: size) }
+    /// "HELLO" on stickers: Archivo Black, width 125, tracking +2.
+    static func hello(_ size: CGFloat) -> Font { .custom("Archivo-BlackExpanded", size: size) }
+    /// "my name is" on stickers: Archivo SemiBold.
+    static func nameIs(_ size: CGFloat) -> Font { .custom("Archivo-SemiBold", size: size) }
+    /// Names on stickers and the Me initial only: Caveat Brush.
+    static func marker(_ size: CGFloat) -> Font { .custom("CaveatBrush-Regular", size: size) }
+    /// Stamp text, always caps: Archivo Bold, width 75.
+    static func stampText(_ size: CGFloat) -> Font { .custom("Archivo-BoldCondensed", size: size) }
+    /// Everything else (UI, body, buttons, notes): system SF Pro, 13 to 17 pt.
+    static func ui(_ size: CGFloat = 17, weight: Font.Weight = .regular) -> Font { .system(size: size, weight: weight) }
 
-    static let displayTracking: CGFloat = -0.5
-    static let monoTracking: CGFloat = 1.5
+    static let titleTracking: CGFloat = -0.3
 
-    // MARK: Spacing, radius
+    // MARK: Spacing, radius, sizes
     enum Space {
         static let xs: CGFloat = 4, s: CGFloat = 8, m: CGFloat = 12, l: CGFloat = 16, xl: CGFloat = 24, xxl: CGFloat = 32
     }
-    static let radius: CGFloat = 24
-    static let buttonHeight: CGFloat = 56
-
-    // MARK: Shadow
-    static let shadowColor = ink.opacity(0.12)
-    static let shadowY: CGFloat = 8
-    static let shadowBlur: CGFloat = 20
+    static let groupRadius: CGFloat = 12    // grouped rows
+    static let rowHeight: CGFloat = 50
+    static let buttonRadius: CGFloat = 14
+    static let buttonHeight: CGFloat = 54
+    static let scanButtonSize: CGFloat = 92
 
     // MARK: Motion
-    static let spring = Animation.spring(response: 0.45, dampingFraction: 0.7)
+    static let drop = Animation.spring(response: 0.45, dampingFraction: 0.75)  // the sticker drop
+    static let thunk = Animation.easeOut(duration: 0.12)                       // stamp 1.15 → 1.0
 }
 
 extension View {
-    func themeShadow() -> some View {
-        shadow(color: Theme.shadowColor, radius: Theme.shadowBlur / 2, x: 0, y: Theme.shadowY)
+    /// Sticker and scan-button shadow: 0 1 2 ink 18% plus 0 8 18 ink 8%.
+    func stickerShadow() -> some View {
+        shadow(color: Theme.ink.opacity(0.18), radius: 1, x: 0, y: 1)
+            .shadow(color: Theme.ink.opacity(0.08), radius: 9, x: 0, y: 8)
+    }
+
+    /// Grouped iOS-style box: white, 1 pt rule border, radius 12.
+    func groupBox() -> some View {
+        background(Theme.surface, in: RoundedRectangle(cornerRadius: Theme.groupRadius))
+            .overlay(RoundedRectangle(cornerRadius: Theme.groupRadius).strokeBorder(Theme.rule, lineWidth: 1))
     }
 }
 

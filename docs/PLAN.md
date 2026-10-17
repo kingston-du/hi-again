@@ -61,6 +61,8 @@ Claude, do these in order. Keep kingston's steps short and one at a time, since 
 
 ## Part 2. Design (simple, clean, still ours)
 
+> **Superseded for tokens, fonts and components by [docs/design/DESIGN-v3.md](design/DESIGN-v3.md)** (HELLO stickers, red stamps, Archivo + Caveat Brush, round red Scan button). Screens, flow and copy below still apply where v3 doesn't say otherwise. `Theme.swift` follows v3.
+
 **The idea: name badges and passport stamps.** Every person is a "HELLO, I'M" conference badge in their own pastel color. Every meeting is a round stamp. Light lilac paper, deep plum ink, one strong violet. No dark mode.
 
 ### Tokens (put these in `Theme.swift`; nothing else defines a color or font)
@@ -153,7 +155,7 @@ Three tables. A meeting is stored **twice, once per person**, so each person own
 
 | Table | Columns | Rules (RLS) |
 |---|---|---|
-| `profiles` | `id uuid` PK = auth user id · `first_name text not null` · `last_name text` · `badge_color text not null default 'lilac'` · `instagram text` · `snapchat text` · `linkedin text` · `created_at timestamptz default now()` | Read: your own, or anyone you have a meeting row with. Insert/update: your own only |
+| `profiles` | `id uuid` PK = auth user id · `first_name text not null` · `last_name text` · `badge_color text not null default 'red'` · `instagram text` · `snapchat text` · `linkedin text` · `created_at timestamptz default now()` | Read: your own, or anyone you have a meeting row with. Insert/update: your own only |
 | `cards` | `card_hash text` PK · `user_id uuid unique` → profiles · `claimed_at timestamptz default now()` | No direct access at all. Only the two functions below touch it |
 | `meetings` | `id uuid` PK default `gen_random_uuid()` · `owner_id uuid` → profiles · `other_id uuid` → profiles · `met_at timestamptz default now()` · `lat float8` · `lng float8` · `place_name text` · `note text` | Read, update and delete: only where `owner_id = auth.uid()`. Only the `note` column is updatable. No direct inserts (only `scan_card` inserts) |
 
@@ -171,7 +173,7 @@ Handles are stored without "@". `card_hash` = SHA-256 hex of (`CARD_SALT` + the 
 ### Swift contracts
 
 ```swift
-enum BadgeColor: String, Codable, CaseIterable { case peach, lilac, mint, butter, sky, rose }
+enum BadgeColor: String, Codable, CaseIterable { case red, blue, green, yellow, pink, black }
 
 struct Profile: Codable, Identifiable, Hashable {
     let id: UUID; var firstName: String; var lastName: String?

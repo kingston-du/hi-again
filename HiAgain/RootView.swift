@@ -13,7 +13,7 @@ struct RootView: View {
             if supabase.session == nil {
                 WelcomeView()
             } else if loadingProfile {
-                ProgressView().tint(Theme.violet)
+                ProgressView().tint(Theme.stamp)
             } else if profile == nil {
                 MakeBadgeView { saved in
                     profile = saved

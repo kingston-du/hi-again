@@ -11,7 +11,7 @@ create table if not exists public.profiles (
   id uuid primary key references auth.users (id) on delete cascade,
   first_name text not null,
   last_name text,
-  badge_color text not null default 'lilac',
+  badge_color text not null default 'red',
   instagram text,
   snapchat text,
   linkedin text,

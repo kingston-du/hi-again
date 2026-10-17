@@ -3,7 +3,7 @@
 App: "hi again." An iPhone app (SwiftUI, iOS 17+, Supabase). Scan someone's NFC card, their
 name badge appears, and the meeting is saved for both people with time, place and a private note.
 
-- Spec, design and contracts: docs/PLAN.md (Part 2 design, Part 3 contracts)
+- Spec and contracts: docs/PLAN.md (Part 3 contracts). Design: docs/design/DESIGN-v3.md
 - Work board: docs/TASKS.md · Handoff log: docs/PROGRESS.md · Decisions: docs/DECISIONS.md
 
 ## Rules
