@@ -1,0 +1,23 @@
+---
+description: Theme-only UI — badges, stamps, Part 2 design tokens
+globs: HiAgain/**/*.{swift}
+alwaysApply: false
+---
+
+# Theme and views
+
+When editing Views, Components, or `Theme.swift`, also load the `ios-design` skill. Design tokens and copy are locked in `docs/PLAN.md` Part 2 — do not invent a new palette or type system.
+
+## Tokens only
+- Every color, font, spacing, and radius comes from `Theme`. No hex literals or raw font sizes in Views/Components.
+- Paper lilac background, deep plum ink, one violet accent. No dark mode.
+- Fonts: Bricolage Grotesque (display), Instrument Serif Italic (accent/notes), Geist Mono (places/times, ALL CAPS), SF Pro (UI).
+
+## Components
+Reuse `Badge`, `Stamp`, `PrimaryButton`/`SecondaryButton`, `SocialButton`, `TapButton`. Do not reimplement them inline.
+
+## Motion
+Springs (response 0.45, damping 0.7). Respect Reduce Motion. Scan-result drop + stamp haptic is the signature moment.
+
+## Copy
+Short and warm. First names. Match the Part 2 phrase table ("You met Maya", "Not on the app yet", etc.).

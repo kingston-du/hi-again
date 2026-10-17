@@ -1,0 +1,22 @@
+---
+description: Supabase schema, RLS, and Swift service contracts
+globs: "{supabase/**,HiAgain/Services/**,HiAgain/Models/**}"
+alwaysApply: false
+---
+
+# Supabase and services
+
+When touching SQL, RLS, edge functions, or `SupabaseService`, load the `supabase` and `supabase-postgres-best-practices` skills. For Swift async/`@MainActor` issues, load `swift-concurrency`.
+
+## Schema (Part 3)
+- Tables: `profiles`, `cards`, `meetings` — meeting stored twice (once per person) for private notes.
+- RPCs only: `claim_card`, `scan_card` (security definer). `cards` has no direct client access.
+- RLS: meetings only where `owner_id = auth.uid()`; never authorize from editable `user_metadata`.
+
+## Swift contracts
+- Match Part 3 signatures exactly (`SupabaseService`, `NFCService`, `CardHasher`, `LocationService`).
+- `card_hash` = SHA-256 of salt + UID hex; raw UID never leaves the phone.
+- Location: give up after 2 seconds; a scan never waits on place.
+
+## Client
+Create the Supabase client from Info.plist `SUPABASE_URL` / `SUPABASE_ANON_KEY` (from Secrets). Session must survive restart.

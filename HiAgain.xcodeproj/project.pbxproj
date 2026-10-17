@@ -12,16 +12,12 @@
 
 /* Begin PBXFileReference section */
 		B9EFAD760A3501E33DB0EF40 /* Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
-		E24F45B4423BD56C64C3D38B /* HiAgain.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = HiAgain.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		E24F45B4423BD56C64C3D38B /* HiAgain.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HiAgain.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		70983F8C5BBBA380D2C0205F /* HiAgain */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			explicitFileTypes = {
-			};
-			explicitFolders = (
-			);
 			path = HiAgain;
 			sourceTree = "<group>";
 		};
