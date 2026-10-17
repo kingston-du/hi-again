@@ -15,7 +15,7 @@ Status: done (font files arrive with B0; names already listed in UIAppFonts)
 
 **B2 · Database** · Owner: DeepSeek (Claude reviews) · Files: `supabase/schema.sql` · *Done when:* one script creates the 3 tables, RLS policies and 2 functions exactly per Part 3 and grants execute to `authenticated`. kingston pastes it into Supabase → SQL Editor and it runs clean.
 
-Status: todo
+Status: done
 
 **B3 · Supabase service** · Owner: Codex · Files: `Services/SupabaseService.swift` · *Done when:* every function in the contract works against the real database. Client created from the `Secrets` values (read via Info.plist keys `SUPABASE_URL`, `SUPABASE_ANON_KEY`), dates decode, and the session survives an app restart.
 
