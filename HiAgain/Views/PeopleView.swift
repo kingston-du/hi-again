@@ -7,6 +7,9 @@ struct PeopleView: View {
     @State private var showMe = false
     @State private var loadError: String?
     @State private var path = NavigationPath()
+    @State private var scanResult: ScanResult?
+    @State private var scanMessage: String?
+    @State private var scanning = false
 
     var body: some View {
         NavigationStack(path: $path) {
@@ -50,13 +53,30 @@ struct PeopleView: View {
                     }
                 }
 
-                ScanButton { startScan() }
-                    .padding(.bottom, Theme.Space.xl)
+                VStack(spacing: Theme.Space.m) {
+                    if let scanMessage {
+                        Text(scanMessage)
+                            .font(Theme.ui(15, weight: .semibold)).foregroundStyle(.white)
+                            .padding(.horizontal, Theme.Space.l).padding(.vertical, Theme.Space.m)
+                            .background(Theme.ink, in: RoundedRectangle(cornerRadius: Theme.buttonRadius))
+                            .padding(.horizontal, Theme.Space.l)
+                            .transition(.opacity)
+                    }
+                    ScanButton { startScan() }
+                        .disabled(scanning)
+                }
+                .padding(.bottom, Theme.Space.xl)
             }
             .navigationDestination(for: Person.self) { person in
                 PersonView(person: person) {
                     path.removeLast()
                     await load()
+                }
+            }
+            .fullScreenCover(item: $scanResult) { result in
+                ScanResultView(result: result) {
+                    scanResult = nil
+                    Task { await load() }
                 }
             }
             .sheet(isPresented: $showMe) {
@@ -74,8 +94,30 @@ struct PeopleView: View {
         }
     }
 
-    /// B7 fills this in (NFC → scanCard → ScanResultView).
-    private func startScan() {}
+    /// NFC → scanCard (with place) → full-screen result. A failed read stays here with a short message.
+    private func startScan() {
+        guard !scanning else { return }
+        scanning = true
+        withAnimation { scanMessage = nil }
+        Task {
+            defer { scanning = false }
+            do {
+                scanResult = try await Scanner.scan()
+            } catch Scanner.Failure.offline {
+                show("Couldn't reach the internet. Try again.")
+            } catch {
+                show("Couldn't read that. Hold it near the top of your phone.")
+            }
+        }
+    }
+
+    private func show(_ message: String) {
+        withAnimation { scanMessage = message }
+        Task {
+            try? await Task.sleep(for: .seconds(4))
+            withAnimation { if scanMessage == message { scanMessage = nil } }
+        }
+    }
 
     private func load() async {
         do {

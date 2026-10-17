@@ -41,7 +41,7 @@ Status: done (needs a real Apple sign-in on the phone to confirm). BadgeFields/B
 
 **B7 · Scan** · Owner: Claude · Files: `ScanResultView`, the scan action in `PeopleView` · *Done when:* Tap → NFC sheet → `scanCard` with the place → the full-screen result with the drop-in badge, stamp and haptic for met and already met, and the unknown, own-card and couldn't-read states. The note saves on Done. Scan to badge in under 3 seconds.
 
-Status: todo
+Status: done (needs on-phone test with two linked accounts)
 
 **B8 · People and Person** · Owner: Codex (or Claude if it has room) · Files: `PeopleView`, `PersonView` · *Done when:* the list matches Part 2 (title count, row badges, note preview, pull to refresh, empty state), Person shows socials that open the right app and one "Where you met" section (stamp, place, time, editable note), and Remove works.
 

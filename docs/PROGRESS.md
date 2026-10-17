@@ -1,8 +1,9 @@
 # Progress (update at the end of every session, then commit)
 
-Last updated: Sat 1:20 PM by Cursor
+Last updated: Sat 1:25 PM by Claude
 
 ## Works now
+- B5–B9 built on design v3: Welcome + Apple sign in, Make your badge, Link your card, People with Scan button → full-screen result, Person, Me. Builds clean; not yet run end to end on the phone
 - B0 done: app runs on kingston's iPhone 17 Pro; Supabase schema (B2) is live with Claude's fixes
 - B1 scaffold builds for the simulator: Theme, models, service stubs, RootView routing to placeholder views, pack.sh
 - B2 `supabase/schema.sql`: profiles/cards/meetings + RLS + `claim_card` / `scan_card` (execute → authenticated). Paste into Supabase SQL Editor to apply.
@@ -11,11 +12,10 @@ Last updated: Sat 1:20 PM by Cursor
 - B9 Me sheet: sticker, Edit badge via shared `BadgeFields`, Relink (NFC+claim) / Unlink, Sign out → Welcome. C1 complete.
 
 ## In progress
-- B4: NFCService, LocationService and a DEBUG-only Debug scan screen (Welcome → Debug scan) are on the phone; needs the Husky ID two-read test
+- On-phone test of the demo path (needs Apple sign in + a second account with a linked card)
 
 ## Next
-- B6 Onboarding / B7 Scan (Claude); B5 Components already in tree and used by B8/B9
-- Card short code on Me only appears after Relink from Me (LinkCardView doesn't persist the hash yet — B6 can write the same `linkedCardHash.<userId>` key)
+- B10 bug bash, then CHECKPOINT
 
 ## Known bugs
 -
