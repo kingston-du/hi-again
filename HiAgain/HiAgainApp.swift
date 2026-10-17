@@ -17,6 +17,7 @@ struct HiAgainApp: App {
             }
                 .environmentObject(supabase)
                 .preferredColorScheme(.light)
+                .dismissKeyboardOnTap()
         }
     }
 }

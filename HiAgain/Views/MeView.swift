@@ -138,25 +138,27 @@ struct MeView: View {
     // MARK: - Edit
 
     private var editBadge: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: Theme.Space.xl) {
-                BadgeFields(draft: $draft)
-                if let error {
-                    Text(error).font(Theme.ui(14)).foregroundStyle(Theme.danger)
+        ScrollViewReader { proxy in
+            ScrollView {
+                VStack(alignment: .leading, spacing: Theme.Space.xl) {
+                    BadgeFields(draft: $draft, scrollProxy: proxy)
+                    if let error {
+                        Text(error).font(Theme.ui(14)).foregroundStyle(Theme.danger)
+                    }
                 }
-            }
-            .padding(.horizontal, Theme.Space.l)
-            .padding(.vertical, Theme.Space.l)
-            .padding(.bottom, 80)
-        }
-        .scrollDismissesKeyboard(.interactively)
-        .safeAreaInset(edge: .bottom) {
-            Button(busy ? "Saving…" : "Save") { Task { await saveBadge() } }
-                .buttonStyle(.primary)
-                .disabled(!draft.isValid || busy)
                 .padding(.horizontal, Theme.Space.l)
-                .padding(.vertical, Theme.Space.m)
-                .background(Theme.paper)
+                .padding(.vertical, Theme.Space.l)
+                .padding(.bottom, 80)
+            }
+            .scrollDismissesKeyboard(.interactively)
+            .safeAreaInset(edge: .bottom) {
+                Button(busy ? "Saving…" : "Save") { Task { await saveBadge() } }
+                    .buttonStyle(.primary)
+                    .disabled(!draft.isValid || busy)
+                    .padding(.horizontal, Theme.Space.l)
+                    .padding(.vertical, Theme.Space.m)
+                    .background(Theme.paper)
+            }
         }
     }
 

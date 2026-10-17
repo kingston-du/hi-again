@@ -15,32 +15,38 @@ struct PersonView: View {
     private var meeting: Meeting? { person.meetings.first }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: Theme.Space.xl) {
-                PersonHeader(profile: person.profile)
+        ScrollViewReader { proxy in
+            ScrollView {
+                VStack(alignment: .leading, spacing: Theme.Space.xl) {
+                    PersonHeader(profile: person.profile)
 
-                let socials = Social.handles(of: person.profile)
-                if !socials.isEmpty {
-                    VStack(spacing: 0) {
-                        ForEach(Array(socials.enumerated()), id: \.offset) { index, pair in
-                            if index > 0 { Divider().overlay(Theme.ruleSoft) }
-                            SocialLinkRow(social: pair.0, handle: pair.1)
+                    let socials = Social.handles(of: person.profile)
+                    if !socials.isEmpty {
+                        VStack(spacing: 0) {
+                            ForEach(Array(socials.enumerated()), id: \.offset) { index, pair in
+                                if index > 0 { Divider().overlay(Theme.ruleSoft) }
+                                SocialLinkRow(social: pair.0, handle: pair.1)
+                            }
                         }
+                        .groupBox()
                     }
-                    .groupBox()
-                }
 
-                WhereYouMetSection(
-                    meeting: meeting,
-                    noteText: $noteText,
-                    isEditingNote: $isEditingNote,
-                    onSaveNote: saveNote
-                )
+                    WhereYouMetSection(
+                        meeting: meeting,
+                        noteText: $noteText,
+                        isEditingNote: $isEditingNote,
+                        onSaveNote: saveNote,
+                        scrollProxy: proxy
+                    )
+                    .id("note")
+                }
+                .padding(.horizontal, Theme.Space.l)
+                .padding(.vertical, Theme.Space.l)
+                .padding(.bottom, Theme.Space.xxl)
             }
-            .padding(.horizontal, Theme.Space.l)
-            .padding(.vertical, Theme.Space.l)
+            .scrollDismissesKeyboard(.interactively)
+            .background(Theme.paper.ignoresSafeArea())
         }
-        .background(Theme.paper.ignoresSafeArea())
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -126,6 +132,7 @@ private struct WhereYouMetSection: View {
     @Binding var noteText: String
     @Binding var isEditingNote: Bool
     let onSaveNote: () -> Void
+    var scrollProxy: ScrollViewProxy? = nil
 
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.Space.m) {
@@ -156,7 +163,8 @@ private struct WhereYouMetSection: View {
             NoteEditor(
                 text: $noteText,
                 isEditing: $isEditingNote,
-                onSave: onSaveNote
+                onSave: onSaveNote,
+                scrollProxy: scrollProxy
             )
         }
     }
@@ -173,6 +181,9 @@ private struct NoteEditor: View {
     @Binding var text: String
     @Binding var isEditing: Bool
     let onSave: () -> Void
+    var scrollProxy: ScrollViewProxy? = nil
+
+    @FocusState private var focused: Bool
 
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.Space.s) {
@@ -181,6 +192,7 @@ private struct NoteEditor: View {
                     .font(Theme.ui(16))
                     .foregroundStyle(Theme.ink)
                     .lineLimit(3...6)
+                    .focused($focused)
                 HStack {
                     Spacer()
                     Button("Save", action: onSave)
@@ -215,6 +227,21 @@ private struct NoteEditor: View {
             RoundedRectangle(cornerRadius: 6)
                 .strokeBorder(Theme.rule, lineWidth: 1)
         )
+        .onChange(of: isEditing) { _, editing in
+            if editing {
+                focused = true
+            } else {
+                focused = false
+            }
+        }
+        .onChange(of: focused) { _, isFocused in
+            guard isFocused, let scrollProxy else { return }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                withAnimation(.easeOut(duration: 0.25)) {
+                    scrollProxy.scrollTo("note", anchor: .center)
+                }
+            }
+        }
     }
 
     private var display: String {
