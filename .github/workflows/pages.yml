@@ -1,0 +1,56 @@
+# Publish web/ to GitHub Pages (Settings → Pages → Source: GitHub Actions).
+# Add repository secrets: SUPABASE_URL, SUPABASE_ANON_KEY
+name: Deploy meet page
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - "web/**"
+      - ".github/workflows/pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Write web/config.js from secrets
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
+            echo "Missing SUPABASE_URL or SUPABASE_ANON_KEY repository secrets."
+            exit 1
+          fi
+          python3 << 'PY'
+          import json, os
+          url = os.environ["SUPABASE_URL"]
+          key = os.environ["SUPABASE_ANON_KEY"]
+          body = (
+              "window.HI_AGAIN = {\n"
+              f"  supabaseUrl: {json.dumps(url)},\n"
+              f"  supabaseAnonKey: {json.dumps(key)},\n"
+              "};\n"
+          )
+          open("web/config.js", "w").write(body)
+          PY
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: web
+      - id: deployment
+        uses: actions/deploy-pages@v4

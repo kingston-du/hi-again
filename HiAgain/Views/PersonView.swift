@@ -185,43 +185,60 @@ private struct NoteEditor: View {
 
     @FocusState private var focused: Bool
 
+    /// Matches ScanResultView.NoteCard: SF ~16–17 with rules every 22 pt under the baseline.
+    private let ruleSpacing: CGFloat = 22
+    private let ruleCount = 6
+
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.Space.s) {
+            Group {
+                if isEditing {
+                    TextField("What do you want to remember?", text: $text, axis: .vertical)
+                        .font(Theme.ui(16))
+                        .foregroundStyle(Theme.ink)
+                        .lineLimit(3...6)
+                        .focused($focused)
+                } else {
+                    Button {
+                        isEditing = true
+                    } label: {
+                        HStack(alignment: .top) {
+                            Text(display)
+                                .font(Theme.ui(16))
+                                .foregroundStyle(text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                                                 ? Theme.faint : Theme.ink)
+                                .multilineTextAlignment(.leading)
+                                .fixedSize(horizontal: false, vertical: true)
+                            Spacer(minLength: 0)
+                        }
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .frame(minHeight: ruleSpacing * 3, alignment: .topLeading)
+            .background(alignment: .top) {
+                VStack(spacing: ruleSpacing) {
+                    ForEach(0..<ruleCount, id: \.self) { _ in
+                        Rectangle().fill(Theme.noteLine).frame(height: 1)
+                    }
+                }
+                .padding(.top, 20)
+            }
+            .clipped()
+
             if isEditing {
-                TextField("What do you want to remember?", text: $text, axis: .vertical)
-                    .font(Theme.ui(16))
-                    .foregroundStyle(Theme.ink)
-                    .lineLimit(3...6)
-                    .focused($focused)
                 HStack {
                     Spacer()
                     Button("Save", action: onSave)
                         .font(Theme.ui(15, weight: .semibold))
                         .foregroundStyle(Theme.ink)
                 }
-            } else {
-                Button {
-                    isEditing = true
-                } label: {
-                    HStack {
-                        Text(display)
-                            .font(Theme.ui(16))
-                            .foregroundStyle(text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                                             ? Theme.faint : Theme.ink)
-                            .multilineTextAlignment(.leading)
-                        Spacer(minLength: 0)
-                    }
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
             }
         }
         .padding(Theme.Space.l)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Theme.surface)
-        .overlay(alignment: .top) {
-            Theme.noteLine.frame(height: 1).padding(.top, Theme.Space.l + 22)
-        }
         .clipShape(RoundedRectangle(cornerRadius: 6))
         .overlay(
             RoundedRectangle(cornerRadius: 6)

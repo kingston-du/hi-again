@@ -5,3 +5,4 @@ DerivedData/
 *.xcuserstate
 .env
 supabase/.temp/
+web/config.js

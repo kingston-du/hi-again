@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#F2F2EE" />
+  <title>hi again.</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,600..900&family=Caveat+Brush&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js"></script>
+  <script src="config.js"></script>
+  <style>
+    :root {
+      --paper: #F2F2EE;
+      --surface: #FFFFFF;
+      --ink: #141414;
+      --muted: #66665F;
+      --faint: #9A9A92;
+      --rule: #DDDDD6;
+      --rule-soft: #ECECE6;
+      --stamp: #D23B24;
+      --danger: #B8301C;
+      --red: #D23B24;
+      --blue: #2556C4;
+      --green: #1D7A4F;
+      --yellow: #F2C230;
+      --pink: #C83C78;
+      --black: #1E1E1E;
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+      background:
+        radial-gradient(120% 80% at 50% -10%, rgba(210, 59, 36, 0.06), transparent 55%),
+        var(--paper);
+      color: var(--ink);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .wrap {
+      max-width: 420px;
+      margin: 0 auto;
+      padding: 28px 20px calc(28px + var(--safe-bottom));
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .wordmark {
+      font-family: "Archivo", sans-serif;
+      font-weight: 900;
+      font-stretch: 112%;
+      font-size: 22px;
+      letter-spacing: -0.02em;
+      line-height: 1;
+      margin: 0 0 28px;
+    }
+    .wordmark .dot { color: var(--stamp); }
+
+    .panel { display: none; flex: 1; flex-direction: column; }
+    .panel.active { display: flex; }
+
+    .center {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      gap: 12px;
+    }
+
+    .muted { color: var(--muted); font-size: 15px; line-height: 1.4; }
+    .error-text { color: var(--danger); font-size: 14px; margin-top: 8px; }
+
+    /* HELLO sticker */
+    .sticker {
+      width: min(300px, 86vw);
+      aspect-ratio: 1.53;
+      border-radius: 12px;
+      position: relative;
+      box-shadow:
+        0 1px 2px rgba(20, 20, 20, 0.18),
+        0 8px 18px rgba(20, 20, 20, 0.08);
+      transform: rotate(-3deg);
+      animation: drop 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+    @keyframes drop {
+      from { opacity: 0; transform: translateY(-28px) rotate(-8deg) scale(0.96); }
+      to { opacity: 1; transform: translateY(0) rotate(-3deg) scale(1); }
+    }
+    .sticker .band {
+      position: absolute; inset: 0;
+      border-radius: inherit;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-top: 7%;
+    }
+    .sticker .hello {
+      font-family: "Archivo", sans-serif;
+      font-weight: 900;
+      font-stretch: 125%;
+      font-size: clamp(22px, 7.2vw, 28px);
+      letter-spacing: 0.08em;
+      line-height: 1;
+      color: #fff;
+    }
+    .sticker.yellow .hello { color: var(--ink); }
+    .sticker .name-is {
+      font-family: "Archivo", sans-serif;
+      font-weight: 600;
+      font-size: clamp(10px, 2.8vw, 12px);
+      margin-top: 2px;
+      color: rgba(255,255,255,0.92);
+    }
+    .sticker.yellow .name-is { color: rgba(20,20,20,0.75); }
+    .sticker .name-panel {
+      position: absolute;
+      left: 8px; right: 8px; bottom: 12px;
+      height: 42%;
+      background: #fff;
+      border-radius: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 10px;
+    }
+    .sticker .name {
+      font-family: "Caveat Brush", cursive;
+      font-size: clamp(36px, 12vw, 48px);
+      line-height: 1;
+      color: var(--ink);
+      text-align: center;
+      word-break: break-word;
+    }
+    .sticker.red .band { background: var(--red); }
+    .sticker.blue .band { background: var(--blue); }
+    .sticker.green .band { background: var(--green); }
+    .sticker.yellow .band { background: var(--yellow); }
+    .sticker.pink .band { background: var(--pink); }
+    .sticker.black .band { background: var(--black); }
+
+    .lead {
+      margin: 28px 0 8px;
+      font-family: "Archivo", sans-serif;
+      font-weight: 800;
+      font-stretch: 87.5%;
+      font-size: 28px;
+      letter-spacing: -0.3px;
+      line-height: 1.05;
+    }
+    .sub {
+      margin: 0 0 24px;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.4;
+    }
+
+    .socials {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 16px 0 0;
+      justify-content: center;
+    }
+    .social-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 12px;
+      background: var(--surface);
+      border: 1px solid var(--rule);
+      border-radius: 999px;
+      font-size: 13px;
+      color: var(--ink);
+      text-decoration: none;
+    }
+    .social-pill span { color: var(--muted); }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-top: 8px;
+    }
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    input, select {
+      width: 100%;
+      height: 50px;
+      padding: 0 14px;
+      border: 1px solid var(--rule);
+      border-radius: 12px;
+      background: var(--surface);
+      font-size: 17px;
+      color: var(--ink);
+      outline: none;
+      appearance: none;
+    }
+    input:focus, select:focus {
+      border-color: var(--ink);
+    }
+    input::placeholder { color: var(--faint); }
+
+    .row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .colors {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .color-swatch {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      border: 2px solid transparent;
+      cursor: pointer;
+      padding: 0;
+    }
+    .color-swatch[aria-checked="true"] {
+      border-color: var(--ink);
+      box-shadow: inset 0 0 0 2px var(--paper);
+    }
+    .color-swatch.red { background: var(--red); }
+    .color-swatch.blue { background: var(--blue); }
+    .color-swatch.green { background: var(--green); }
+    .color-swatch.yellow { background: var(--yellow); }
+    .color-swatch.pink { background: var(--pink); }
+    .color-swatch.black { background: var(--black); }
+
+    .social-row {
+      display: grid;
+      grid-template-columns: 110px 1fr;
+      gap: 8px;
+    }
+
+    .btn {
+      height: 54px;
+      border: none;
+      border-radius: 14px;
+      font-size: 17px;
+      font-weight: 600;
+      cursor: pointer;
+      width: 100%;
+    }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    .btn-primary {
+      background: var(--ink);
+      color: #fff;
+      margin-top: 8px;
+    }
+    .btn-primary:not(:disabled):active { transform: scale(0.985); }
+
+    .success-mark {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      border: 3px solid var(--stamp);
+      display: grid;
+      place-items: center;
+      color: var(--stamp);
+      font-size: 34px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      animation: pop 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+    @keyframes pop {
+      from { transform: scale(0.6); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .spinner {
+      width: 28px;
+      height: 28px;
+      border: 3px solid var(--rule);
+      border-top-color: var(--stamp);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .fine {
+      margin-top: 20px;
+      text-align: center;
+      font-size: 13px;
+      color: var(--faint);
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <p class="wordmark">hi again<span class="dot">.</span></p>
+
+    <div id="panel-loading" class="panel active">
+      <div class="center">
+        <div class="spinner" aria-hidden="true"></div>
+        <p class="muted">Loading…</p>
+      </div>
+    </div>
+
+    <div id="panel-missing" class="panel">
+      <div class="center">
+        <p class="lead">Link not found</p>
+        <p class="muted">Ask them to open Let them scan in the hi again. app and try again.</p>
+      </div>
+    </div>
+
+    <div id="panel-ready" class="panel">
+      <div id="host-sticker" class="sticker red" aria-hidden="true">
+        <div class="band">
+          <div class="hello">HELLO</div>
+          <div class="name-is">my name is</div>
+          <div class="name-panel"><div class="name" id="host-name">—</div></div>
+        </div>
+      </div>
+      <div class="socials" id="host-socials"></div>
+
+      <h1 class="lead" id="meet-title">You’re meeting someone</h1>
+      <p class="sub">Fill in your badge so they remember you.</p>
+
+      <form id="meet-form" novalidate>
+        <div class="row-2">
+          <div>
+            <label for="first">First name</label>
+            <input id="first" name="first" autocomplete="given-name" required maxlength="40" placeholder="Alex" />
+          </div>
+          <div>
+            <label for="last">Last name</label>
+            <input id="last" name="last" autocomplete="family-name" maxlength="40" placeholder="optional" />
+          </div>
+        </div>
+
+        <div>
+          <label>Badge color</label>
+          <div class="colors" id="colors" role="radiogroup" aria-label="Badge color"></div>
+        </div>
+
+        <div>
+          <label for="handle">One social</label>
+          <div class="social-row">
+            <select id="network" aria-label="Network">
+              <option value="instagram">Instagram</option>
+              <option value="snapchat">Snapchat</option>
+              <option value="linkedin">LinkedIn</option>
+            </select>
+            <input id="handle" name="handle" autocomplete="username" maxlength="64" placeholder="handle" required />
+          </div>
+        </div>
+
+        <p class="error-text" id="form-error" hidden></p>
+        <button class="btn btn-primary" id="submit" type="submit">Add Me</button>
+      </form>
+      <p class="fine">They’ll see you in People on their phone.</p>
+    </div>
+
+    <div id="panel-success" class="panel">
+      <div class="center">
+        <div class="success-mark" aria-hidden="true">✓</div>
+        <p class="lead">You’re on their phone</p>
+        <p class="muted">Ask them to pull down on People if you don’t show up yet.</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const COLORS = ["red", "blue", "green", "yellow", "pink", "black"];
+      let selectedColor = "red";
+      let host = null;
+      let slug = null;
+      let client = null;
+
+      const $ = (id) => document.getElementById(id);
+      const panels = ["loading", "missing", "ready", "success"];
+
+      function show(name) {
+        panels.forEach((p) => {
+          const el = $("panel-" + p);
+          if (el) el.classList.toggle("active", p === name);
+        });
+      }
+
+      function qs(name) {
+        return new URLSearchParams(location.search).get(name);
+      }
+
+      function renderColors() {
+        const root = $("colors");
+        root.innerHTML = "";
+        COLORS.forEach((c) => {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "color-swatch " + c;
+          btn.setAttribute("role", "radio");
+          btn.setAttribute("aria-checked", c === selectedColor ? "true" : "false");
+          btn.setAttribute("aria-label", c);
+          btn.addEventListener("click", () => {
+            selectedColor = c;
+            renderColors();
+          });
+          root.appendChild(btn);
+        });
+      }
+
+      function socialLink(network, handle) {
+        if (!handle) return null;
+        const h = handle.replace(/^@/, "");
+        if (network === "instagram") return { label: "Instagram", href: "https://instagram.com/" + encodeURIComponent(h), handle: h };
+        if (network === "snapchat") return { label: "Snapchat", href: "https://www.snapchat.com/add/" + encodeURIComponent(h), handle: h };
+        if (network === "linkedin") return { label: "LinkedIn", href: "https://www.linkedin.com/in/" + encodeURIComponent(h), handle: h };
+        return null;
+      }
+
+      function paintHost(badge) {
+        host = badge;
+        const color = COLORS.includes(badge.badge_color) ? badge.badge_color : "red";
+        const sticker = $("host-sticker");
+        sticker.className = "sticker " + color;
+        $("host-name").textContent = badge.first_name || "—";
+        const titleName = badge.first_name || "them";
+        $("meet-title").textContent = "You’re meeting " + titleName;
+        document.title = "hi again. · " + titleName;
+
+        const box = $("host-socials");
+        box.innerHTML = "";
+        ["instagram", "snapchat", "linkedin"].forEach((n) => {
+          const s = socialLink(n, badge[n]);
+          if (!s) return;
+          const a = document.createElement("a");
+          a.className = "social-pill";
+          a.href = s.href;
+          a.target = "_blank";
+          a.rel = "noopener";
+          a.innerHTML = "<span>" + s.label + "</span> @" + s.handle;
+          box.appendChild(a);
+        });
+      }
+
+      function cleanHandle(raw) {
+        let h = (raw || "").trim();
+        const prefixes = [
+          "https://", "http://", "www.",
+          "instagram.com/", "snapchat.com/add/", "linkedin.com/in/",
+          "@", "in/"
+        ];
+        let changed = true;
+        while (changed) {
+          changed = false;
+          for (const p of prefixes) {
+            if (h.toLowerCase().startsWith(p)) {
+              h = h.slice(p.length);
+              changed = true;
+            }
+          }
+        }
+        return h.replace(/^\/+|\/+$/g, "").trim();
+      }
+
+      async function boot() {
+        slug = (qs("b") || "").trim().toLowerCase();
+        if (!slug) {
+          show("missing");
+          return;
+        }
+
+        const cfg = window.HI_AGAIN;
+        if (!cfg || !cfg.supabaseUrl || !cfg.supabaseAnonKey
+            || cfg.supabaseUrl.includes("YOUR-PROJECT")
+            || cfg.supabaseAnonKey.includes("YOUR-ANON")) {
+          $("panel-loading").innerHTML =
+            '<div class="center"><p class="lead">Almost ready</p><p class="muted">Add web/config.js from config.example.js with your Supabase URL and anon key.</p></div>';
+          return;
+        }
+
+        client = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey, {
+          auth: { persistSession: true, autoRefreshToken: true }
+        });
+
+        const { data, error } = await client.rpc("public_badge", { p_slug: slug });
+        if (error || !data) {
+          show("missing");
+          return;
+        }
+        paintHost(data);
+        renderColors();
+        show("ready");
+      }
+
+      $("meet-form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const err = $("form-error");
+        err.hidden = true;
+        const first = $("first").value.trim();
+        const last = $("last").value.trim();
+        const handle = cleanHandle($("handle").value);
+        const network = $("network").value;
+
+        if (!first) {
+          err.textContent = "First name is required.";
+          err.hidden = false;
+          return;
+        }
+        if (!handle) {
+          err.textContent = "Add one social so they can find you.";
+          err.hidden = false;
+          return;
+        }
+
+        const btn = $("submit");
+        btn.disabled = true;
+        btn.textContent = "Adding…";
+
+        try {
+          const { error: authErr } = await client.auth.signInAnonymously();
+          if (authErr) throw authErr;
+
+          const payload = {
+            p_slug: slug,
+            p_first_name: first,
+            p_last_name: last || null,
+            p_badge_color: selectedColor,
+            p_instagram: network === "instagram" ? handle : null,
+            p_snapchat: network === "snapchat" ? handle : null,
+            p_linkedin: network === "linkedin" ? handle : null,
+          };
+
+          const { data, error: rpcErr } = await client.rpc("meet_via_web", payload);
+          if (rpcErr) throw rpcErr;
+
+          if (!data || data.status === "not_found") {
+            show("missing");
+            return;
+          }
+          if (data.status === "self") {
+            err.textContent = "That’s your own link.";
+            err.hidden = false;
+            return;
+          }
+          // met or already → success
+          show("success");
+        } catch (ex) {
+          console.error(ex);
+          err.textContent = "Couldn’t add you. Check the connection and try again.";
+          err.hidden = false;
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "Add Me";
+        }
+      });
+
+      boot();
+    })();
+  </script>
+</body>
+</html>

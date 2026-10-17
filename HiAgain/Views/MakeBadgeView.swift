@@ -20,9 +20,17 @@ struct BadgeDraft: Equatable {
         !clean(firstName).isEmpty && ![instagram, snapchat, linkedin].allSatisfy { handle($0) == nil }
     }
 
-    func profile(id: UUID) -> Profile {
-        Profile(id: id, firstName: clean(firstName), lastName: clean(lastName).isEmpty ? nil : clean(lastName),
-                badgeColor: color, instagram: handle(instagram), snapchat: handle(snapchat), linkedin: handle(linkedin))
+    func profile(id: UUID, slug: String? = nil) -> Profile {
+        Profile(
+            id: id,
+            firstName: clean(firstName),
+            lastName: clean(lastName).isEmpty ? nil : clean(lastName),
+            badgeColor: color,
+            instagram: handle(instagram),
+            snapchat: handle(snapchat),
+            linkedin: handle(linkedin),
+            slug: slug
+        )
     }
 
     private func clean(_ s: String) -> String { s.trimmingCharacters(in: .whitespacesAndNewlines) }

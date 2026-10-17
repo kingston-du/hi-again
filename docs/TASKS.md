@@ -89,6 +89,6 @@ Status: todo
 
 ---
 
-**A8 · Public badge page** · Owners: DeepSeek (SQL), Cursor (`web/u.html`), Claude (QR on Me) · Files: `supabase/public_badge.sql`, `web/u.html`, `Views/MeView.swift` · Anyone without the app sees your badge: Me shows a QR (and Share link) for `https://<github-pages-url>/u.html?b=<slug>`. A `slug text unique` column on profiles (8 random chars) and `public_badge(p_slug text) returns jsonb` (security definer, executable by `anon`, returns only first name, last name, badge color and socials). The page is styled with the same tokens and has social buttons plus a "Get hi again" line. Shares the GitHub Pages setup with A3. *Done when:* scanning the QR with a phone that doesn't have the app opens the badge in Safari.
+**A8 · QR meet (web Add Me)** · Owners: Cursor (SQL + `web/meet.html`), Claude (QR on Me) · Files: `supabase/qr_meet.sql`, `web/meet.html`, `web/config.example.js`, `Models/Profile.swift`, `Services/SupabaseService.swift`, `Services/QRCode.swift`, `Views/MeView.swift` · Me shows **Let them scan** — a QR (Core Image) and Share for `https://<github-pages-url>/meet.html?b=<slug>`. `profiles.slug` (8 chars) + `public_badge(p_slug)` (anon) + `meet_via_web(...)` (authenticated / anonymous). Guest page shows your HELLO sticker, collects their badge, **Add Me** creates dual meeting rows (`place_name` `QR code`). Host pull-to-refreshes People. Enable Anonymous sign-ins in Supabase Auth. *Done when:* someone without the app scans your QR, submits the form, and appears in your People.
 
-Status: todo
+Status: done

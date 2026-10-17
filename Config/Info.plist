@@ -32,5 +32,7 @@
 	<key>SUPABASE_URL</key><string>$(SUPABASE_URL)</string>
 	<key>SUPABASE_ANON_KEY</key><string>$(SUPABASE_ANON_KEY)</string>
 	<key>CARD_SALT</key><string>$(CARD_SALT)</string>
+	<!-- GitHub Pages meet.html (no query). Override after Pages is live if the URL differs. -->
+	<key>MEET_PAGE_BASE_URL</key><string>https://kingston.github.io/hi-again/meet.html</string>
 </dict>
 </plist>

@@ -64,9 +64,30 @@ final class SupabaseService: ObservableObject {
     }
 
     func saveProfile(_ profile: Profile) async throws {
+        var next = profile
+        if next.slug == nil || next.slug?.isEmpty == true {
+            next.slug = Self.makeSlug()
+        }
         try await client.from("profiles")
-            .upsert(profile)
+            .upsert(next)
             .execute()
+    }
+
+    /// Public meet page URL for this profile’s slug (`MEET_PAGE_BASE_URL?b=<slug>`).
+    func meetURL(for profile: Profile) -> URL? {
+        guard let slug = profile.slug, !slug.isEmpty else { return nil }
+        guard
+            let baseString = Bundle.main.object(forInfoDictionaryKey: "MEET_PAGE_BASE_URL") as? String,
+            var components = URLComponents(string: baseString), !baseString.isEmpty
+        else { return nil }
+        components.queryItems = [URLQueryItem(name: "b", value: slug)]
+        return components.url
+    }
+
+    /// 8 lowercase alphanumeric chars (matches DB slug style).
+    static func makeSlug() -> String {
+        let chars = Array("abcdefghijklmnopqrstuvwxyz0123456789")
+        return String((0..<8).map { _ in chars.randomElement()! })
     }
 
     func claimCard(hash: String) async throws -> ClaimResult {

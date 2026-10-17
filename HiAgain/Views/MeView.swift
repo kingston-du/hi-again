@@ -11,6 +11,7 @@ struct MeView: View {
     @State private var busy = false
     @State private var error: String?
     @State private var confirmUnlink = false
+    @State private var showQRMeet = false
 
     var body: some View {
         NavigationStack {
@@ -53,6 +54,11 @@ struct MeView: View {
             } message: {
                 Text("People who tap it won't see your badge until you link again.")
             }
+            .sheet(isPresented: $showQRMeet) {
+                if let profile, let url = supabase.meetURL(for: profile) {
+                    QRMeetSheet(url: url)
+                }
+            }
         }
     }
 
@@ -76,6 +82,8 @@ struct MeView: View {
                     }
                     .buttonStyle(.secondary)
 
+                    letThemScanSection
+
                     cardSection
 
                     Button("Sign out") { Task { await signOut() } }
@@ -92,6 +100,27 @@ struct MeView: View {
             .padding(.horizontal, Theme.Space.l)
             .padding(.vertical, Theme.Space.l)
         }
+    }
+
+    private var letThemScanSection: some View {
+        VStack(alignment: .leading, spacing: Theme.Space.m) {
+            Text("No app?")
+                .font(Theme.ui(15, weight: .semibold))
+                .foregroundStyle(Theme.ink)
+
+            Text("If they don’t have hi again., show a QR. They fill in their badge and land in your People.")
+                .font(Theme.ui(15))
+                .foregroundStyle(Theme.muted)
+
+            Button("Let them scan") {
+                Task { await ensureSlugAndShowQR() }
+            }
+            .buttonStyle(.primary)
+            .disabled(busy || profile == nil)
+        }
+        .padding(Theme.Space.l)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .groupBox()
     }
 
     private var cardSection: some View {
@@ -166,7 +195,14 @@ struct MeView: View {
 
     private func load() async {
         do {
-            profile = try await supabase.myProfile()
+            var loaded = try await supabase.myProfile()
+            // Assign a slug once if the DB column exists but the row predates QR meet.
+            if var p = loaded, p.slug == nil || p.slug?.isEmpty == true {
+                p.slug = SupabaseService.makeSlug()
+                try await supabase.saveProfile(p)
+                loaded = try await supabase.myProfile() ?? p
+            }
+            profile = loaded
             if let profile { draft = BadgeDraft(profile) }
             if let userId = supabase.session?.user.id {
                 linkedHash = UserDefaults.standard.string(forKey: Self.hashKey(userId))
@@ -176,15 +212,36 @@ struct MeView: View {
         }
     }
 
+    private func ensureSlugAndShowQR() async {
+        guard var p = profile else { return }
+        busy = true
+        error = nil
+        defer { busy = false }
+        do {
+            if p.slug == nil || p.slug?.isEmpty == true {
+                p.slug = SupabaseService.makeSlug()
+                try await supabase.saveProfile(p)
+                profile = try await supabase.myProfile() ?? p
+            }
+            guard supabase.meetURL(for: profile ?? p) != nil else {
+                error = "Meet page URL isn’t set. Check MEET_PAGE_BASE_URL."
+                return
+            }
+            showQRMeet = true
+        } catch {
+            self.error = "Couldn't prepare your QR. Check your connection and try again."
+        }
+    }
+
     private func saveBadge() async {
         guard let id = supabase.session?.user.id else { return }
         busy = true
         error = nil
         defer { busy = false }
-        let next = draft.profile(id: id)
+        let next = draft.profile(id: id, slug: profile?.slug)
         do {
             try await supabase.saveProfile(next)
-            profile = next
+            profile = try await supabase.myProfile() ?? next
             editing = false
         } catch {
             self.error = "Couldn't save your badge. Check your connection and try again."
@@ -244,6 +301,72 @@ struct MeView: View {
 
     private static func hashKey(_ userId: UUID) -> String {
         "linkedCardHash.\(userId.uuidString)"
+    }
+}
+
+// MARK: - QR meet sheet
+
+private struct QRMeetSheet: View {
+    let url: URL
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: Theme.Space.xl) {
+                Text("They scan this with their Camera app.")
+                    .font(Theme.ui(15))
+                    .foregroundStyle(Theme.muted)
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: .infinity)
+
+                if let image = QRCode.image(for: url.absoluteString, dimension: 240) {
+                    Image(uiImage: image)
+                        .interpolation(.none)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 240, height: 240)
+                        .padding(Theme.Space.l)
+                        .background(Theme.surface, in: RoundedRectangle(cornerRadius: Theme.groupRadius))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: Theme.groupRadius)
+                                .strokeBorder(Theme.rule, lineWidth: 1)
+                        )
+                }
+
+                Text(url.absoluteString)
+                    .font(Theme.ui(13))
+                    .foregroundStyle(Theme.faint)
+                    .multilineTextAlignment(.center)
+                    .textSelection(.enabled)
+
+                ShareLink(item: url) {
+                    Text("Share link")
+                        .font(Theme.ui(17, weight: .semibold))
+                        .foregroundStyle(Theme.ink)
+                        .frame(maxWidth: .infinity, minHeight: Theme.buttonHeight)
+                        .background(Theme.surface, in: RoundedRectangle(cornerRadius: Theme.buttonRadius))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: Theme.buttonRadius)
+                                .strokeBorder(Theme.rule, lineWidth: 1)
+                        )
+                }
+
+                Spacer(minLength: 0)
+            }
+            .padding(.horizontal, Theme.Space.l)
+            .padding(.top, Theme.Space.l)
+            .background(Theme.paper.ignoresSafeArea())
+            .navigationTitle("Let them scan")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Done") { dismiss() }
+                        .font(Theme.ui(17, weight: .semibold))
+                        .foregroundStyle(Theme.ink)
+                }
+            }
+        }
+        .presentationDetents([.medium, .large])
     }
 }
 

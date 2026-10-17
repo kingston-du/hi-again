@@ -155,13 +155,13 @@ Three tables. A meeting is stored **twice, once per person**, so each person own
 
 | Table | Columns | Rules (RLS) |
 |---|---|---|
-| `profiles` | `id uuid` PK = auth user id · `first_name text not null` · `last_name text` · `badge_color text not null default 'red'` · `instagram text` · `snapchat text` · `linkedin text` · `created_at timestamptz default now()` | Read: your own, or anyone you have a meeting row with. Insert/update: your own only |
-| `cards` | `card_hash text` PK · `user_id uuid unique` → profiles · `claimed_at timestamptz default now()` | No direct access at all. Only the two functions below touch it |
-| `meetings` | `id uuid` PK default `gen_random_uuid()` · `owner_id uuid` → profiles · `other_id uuid` → profiles · `met_at timestamptz default now()` · `lat float8` · `lng float8` · `place_name text` · `note text` | Read, update and delete: only where `owner_id = auth.uid()`. Only the `note` column is updatable. No direct inserts (only `scan_card` inserts) |
+| `profiles` | `id uuid` PK = auth user id · `first_name text not null` · `last_name text` · `badge_color text not null default 'red'` · `instagram text` · `snapchat text` · `linkedin text` · `slug text unique` (8 lowercase alphanumeric; public QR meet link) · `created_at timestamptz default now()` | Read: your own, or anyone you have a meeting row with. Insert/update: your own only |
+| `cards` | `card_hash text` PK · `user_id uuid unique` → profiles · `claimed_at timestamptz default now()` | No direct access at all. Only the RPC functions touch it |
+| `meetings` | `id uuid` PK default `gen_random_uuid()` · `owner_id uuid` → profiles · `other_id uuid` → profiles · `met_at timestamptz default now()` · `lat float8` · `lng float8` · `place_name text` · `note text` | Read, update and delete: only where `owner_id = auth.uid()`. Only the `note` column is updatable. No direct inserts (only `scan_card` / `meet_via_web` insert) |
 
 Handles are stored without "@". `card_hash` = SHA-256 hex of (`CARD_SALT` + the card UID as hex). The raw UID never leaves the phone.
 
-**Three database functions** (`security definer`, `set search_path = public`, executable by `authenticated`):
+**Core database functions** (`security definer`, `set search_path = public`, executable by `authenticated`):
 
 - `claim_card(p_hash text) returns text`. Returns `'linked'` (deletes any old card for this user, then links this one), `'already_yours'`, or `'taken'` (another user has it; change nothing).
 - `unlink_card() returns void`. Deletes the caller's card row. `SupabaseService.unlinkCard()` calls it.
@@ -169,6 +169,11 @@ Handles are stored without "@". `card_hash` = SHA-256 hex of (`CARD_SALT` + the 
   - No card row: `{"status":"unknown"}`, saves nothing.
   - Card belongs to the caller: `{"status":"self"}`.
   - Otherwise it inserts **two** meeting rows (caller → them, them → caller) with the same time and place, and returns `{"status":"met","meeting_id":<caller's row id>,"times_met":<count of caller's rows with them>,"profile":<their profiles row as json>}`.
+
+**QR meet add-on** (paste `supabase/qr_meet.sql` after the base schema; Anonymous sign-ins must be on in Auth):
+
+- `public_badge(p_slug text) returns jsonb`. Executable by `anon` + `authenticated`. Returns only `first_name`, `last_name`, `badge_color`, socials for that slug, or `null` if missing. Never returns `id`.
+- `meet_via_web(p_slug, p_first_name, p_last_name, p_badge_color, p_instagram, p_snapchat, p_linkedin) returns jsonb`. Executable by `authenticated` (includes anonymous sessions). Upserts the caller's profile, inserts dual meeting rows with `place_name = 'QR code'` (2-minute dedupe like `scan_card`). Returns `{"status":"met"|"self"|"not_found"|"already",...}`.
 
 ### Swift contracts
 
@@ -178,6 +183,7 @@ enum BadgeColor: String, Codable, CaseIterable { case red, blue, green, yellow, 
 struct Profile: Codable, Identifiable, Hashable {
     let id: UUID; var firstName: String; var lastName: String?
     var badgeColor: BadgeColor; var instagram: String?; var snapchat: String?; var linkedin: String?
+    var slug: String?   // 8-char public meet code; assigned on save if missing
 }   // CodingKeys map to snake_case columns
 
 struct Meeting: Codable, Identifiable, Hashable {
@@ -199,7 +205,7 @@ struct Place { let name: String?; let lat: Double; let lng: Double }
 
 | Service | Functions (all `async throws` unless noted) |
 |---|---|
-| `SupabaseService` (singleton `shared`, `@MainActor ObservableObject` with `@Published var session`) | `signInWithApple(idToken: String, nonce: String)` · `signOut()` · `myProfile() -> Profile?` · `saveProfile(_:)` · `claimCard(hash:) -> ClaimResult` · `unlinkCard()` · `scanCard(hash:place:) -> ScanOutcome` · `people() -> [Person]` (one query for my meetings, one `in` query for those profiles, grouped client-side) · `updateNote(meetingId:text:)` · `removePerson(id:)` (deletes my rows with them) |
+| `SupabaseService` (singleton `shared`, `@MainActor ObservableObject` with `@Published var session`) | `signInWithApple(idToken: String, nonce: String)` · `signOut()` · `myProfile() -> Profile?` · `saveProfile(_:)` (ensures `slug` if missing) · `meetURL(for: Profile) -> URL?` · `claimCard(hash:) -> ClaimResult` · `unlinkCard()` · `scanCard(hash:place:) -> ScanOutcome` · `people() -> [Person]` (one query for my meetings, one `in` query for those profiles, grouped client-side) · `updateNote(meetingId:text:)` · `removePerson(id:)` (deletes my rows with them) |
 | `NFCService` | `readCardUID() -> Data`. Uses `NFCTagReaderSession` polling `.iso14443` and `.iso15693`, takes the first tag's identifier (MIFARE, ISO 7816, ISO 15693, or FeliCa), and sets `alertMessage = "Hold a card near the top of your phone."` |
 | `CardHasher` (no async) | `static func hash(_ uid: Data) -> String` (CryptoKit SHA-256 of salt + hex) · `static func shortCode(_ hash: String) -> String` (first 4 characters, uppercased) |
 | `LocationService` | `currentPlace() -> Place?`. Asks "when in use" permission, takes one fix, reverse-geocodes (prefer a point-of-interest name such as "HUB"), and **gives up after 2 seconds** with whatever it has. A scan never waits on location |

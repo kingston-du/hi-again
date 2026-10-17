@@ -69,54 +69,58 @@ private struct MetView: View {
     @FocusState private var noteFocused: Bool
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: Theme.Space.l) {
-                Text(at.formatted(.dateTime.weekday(.wide).hour().minute()))
-                    .font(Theme.ui(15, weight: .semibold)).foregroundStyle(.white.opacity(0.85))
+        ScrollViewReader { proxy in
+            ScrollView {
+                VStack(alignment: .leading, spacing: Theme.Space.l) {
+                    Text(at.formatted(.dateTime.weekday(.wide).hour().minute()))
+                        .font(Theme.ui(15, weight: .semibold)).foregroundStyle(.white.opacity(0.85))
 
-                ZStack(alignment: .bottomTrailing) {
-                    Sticker(firstName: profile.firstName, color: profile.badgeColor == .red ? .black : profile.badgeColor,
-                            size: .large, tilt: -3)
-                    Stamp(place: place?.name, date: at, color: .white, rotation: 12)
-                        .offset(x: 34, y: 58)
-                        .scaleEffect(stamped ? 1 : 1.15)
-                        .opacity(stamped ? 1 : 0)
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, Theme.Space.xl)
-                .offset(y: dropped ? 0 : -500)
-
-                VStack(alignment: .leading, spacing: Theme.Space.xs) {
-                    if metBefore {
-                        Text("You've met before").font(Theme.ui(15, weight: .semibold)).foregroundStyle(.white.opacity(0.85))
+                    ZStack(alignment: .bottomTrailing) {
+                        Sticker(firstName: profile.firstName, color: profile.badgeColor == .red ? .black : profile.badgeColor,
+                                size: .large, tilt: -3)
+                        Stamp(place: place?.name, date: at, color: .white, rotation: 12)
+                            .offset(x: 34, y: 58)
+                            .scaleEffect(stamped ? 1 : 1.15)
+                            .opacity(stamped ? 1 : 0)
                     }
-                    Text("You met \(profile.firstName).")
-                        .font(Theme.title(34)).tracking(Theme.titleTracking).foregroundStyle(.white)
-                    if let name = place?.name {
-                        Text(name).font(Theme.ui(17)).foregroundStyle(.white.opacity(0.85))
-                    }
-                }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, Theme.Space.xl)
+                    .offset(y: dropped ? 0 : -500)
 
-                VStack(spacing: Theme.Space.s) {
-                    ForEach(Social.handles(of: profile), id: \.0) { social, handle in
-                        SocialButton(social: social, handle: handle)
+                    VStack(alignment: .leading, spacing: Theme.Space.xs) {
+                        if metBefore {
+                            Text("You've met before").font(Theme.ui(15, weight: .semibold)).foregroundStyle(.white.opacity(0.85))
+                        }
+                        Text("You met \(profile.firstName).")
+                            .font(Theme.title(34)).tracking(Theme.titleTracking).foregroundStyle(.white)
+                        if let name = place?.name {
+                            Text(name).font(Theme.ui(17)).foregroundStyle(.white.opacity(0.85))
+                        }
                     }
-                }
 
-                NoteCard(text: $note, focused: $noteFocused)
+                    VStack(spacing: Theme.Space.s) {
+                        ForEach(Social.handles(of: profile), id: \.0) { social, handle in
+                            SocialButton(social: social, handle: handle)
+                        }
+                    }
+
+                    NoteCard(text: $note, focused: $noteFocused)
+                        .id("note")
+                }
+                .padding(.horizontal, Theme.Space.xl)
+                .padding(.top, Theme.Space.l)
+                .padding(.bottom, 100)
             }
-            .padding(.horizontal, Theme.Space.xl)
-            .padding(.top, Theme.Space.l)
-            .padding(.bottom, 100)
-        }
-        .scrollDismissesKeyboard(.interactively)
-        .background(Theme.stamp.ignoresSafeArea())
-        .safeAreaInset(edge: .bottom) {
-            Button(saving ? "Saving…" : "Done") { Task { await done() } }
-                .buttonStyle(.primaryInverted)
-                .disabled(saving)
-                .padding(.horizontal, Theme.Space.xl).padding(.vertical, Theme.Space.m)
-                .background(Theme.stamp)
+            .scrollDismissesKeyboard(.interactively)
+            .scrollToFocused("note", proxy: proxy, anchor: .center, when: noteFocused)
+            .background(Theme.stamp.ignoresSafeArea())
+            .safeAreaInset(edge: .bottom) {
+                Button(saving ? "Saving…" : "Done") { Task { await done() } }
+                    .buttonStyle(.primaryInverted)
+                    .disabled(saving)
+                    .padding(.horizontal, Theme.Space.xl).padding(.vertical, Theme.Space.m)
+                    .background(Theme.stamp)
+            }
         }
         .sensoryFeedback(.impact(weight: .heavy, intensity: 1), trigger: stamped)
         .task {
