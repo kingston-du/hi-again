@@ -7,7 +7,7 @@ Full spec: docs/PLAN.md. Rules: AGENTS.md.
 
 **B0 · Setup** · Owner: kingston (Claude guides) · Part 5, minus Xcode steps 1, 3 and 4 (Claude generated the project with XcodeGen) · *Done when:* the empty app runs on your iPhone, Supabase keys are in `Secrets.xcconfig`, and the fonts are in the folder.
 
-Status: todo
+Status: done
 
 **B1 · Scaffold** · Owner: Claude · Files: everything in the repo layout except Views' bodies and service internals · *Done when:* `Theme.swift` has every token and font from Part 2 (fonts registered via `UIAppFonts` in Info), Models and `ScanOutcome`/`ClaimResult`/`Place` exist exactly as in Part 3, services exist as stubs with the exact signatures, `RootView` routes to placeholder views, Info has `NFCReaderUsageDescription`, `NSLocationWhenInUseUsageDescription` and `com.apple.developer.nfc.readersession.iso7816.select-identifiers` (include `A0000002471001` so ISO 7816 cards are detected), `scripts/pack.sh` works, and it builds.
 
@@ -19,11 +19,11 @@ Status: done
 
 **B3 · Supabase service** · Owner: Codex · Files: `Services/SupabaseService.swift` · *Done when:* every function in the contract works against the real database. Client created from the `Secrets` values (read via Info.plist keys `SUPABASE_URL`, `SUPABASE_ANON_KEY`), dates decode, and the session survives an app restart.
 
-Status: todo
+Status: done
 
 **B4 · NFC, hashing and location** · Owner: Claude · Files: `NFCService`, `CardHasher`, `LocationService` · *Done when:* on your iPhone, a debug button reads your Husky ID twice and shows the same short code both times, and `currentPlace()` returns a name within 2 seconds or nil. **Do this early: it's the riskiest card.** Record which cards give stable IDs in DECISIONS.md.
 
-Status: todo
+Status: doing (built and installed; waiting on the two-scan test with a real card)
 
 **B5 · Components** · Owner: Claude · Files: `Components/*` · *Done when:* Badge (both sizes, all 6 colors), Stamp, buttons and TapButton look right in Xcode Previews on a paper background, using Theme only.
 
