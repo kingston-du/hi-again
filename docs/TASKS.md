@@ -7,7 +7,7 @@ Full spec: docs/PLAN.md. Rules: AGENTS.md.
 
 **C1 · Data + People + Me** · Owner: Cursor · Does B3, then B8, then B9 in one session, committing after each card (`B3: …`, `B8: …`, `B9: …`). Files: `Services/SupabaseService.swift`, `Views/PeopleView.swift`, `Views/PersonView.swift`, `Views/MeView.swift`. Views: build the layout and behavior with plain SwiftUI and Theme tokens only (no custom shapes); Claude swaps in the Sticker/Stamp components and final styling afterwards, so keep each row and header in a small private subview that's easy to replace. PeopleView has a placeholder round button floating at the bottom center labeled "Scan a card" that calls an empty `startScan()` (Claude styles it and fills it in B7). Person shows one "Where you met" section (see PLAN Part 2, screen 6). Don't touch Components/, Theme.swift, or the onboarding/scan views. *Done when:* B3, B8 and B9 are each done per their cards.
 
-Status: doing
+Status: done
 
 ### Base MVP
 
@@ -49,7 +49,7 @@ Status: done
 
 **B9 · Me** · Owner: Cursor · Files: `MeView` · *Done when:* the sheet matches Part 2: edit badge reuses `MakeBadgeView`'s fields, relink/unlink works, sign out returns to Welcome.
 
-Status: doing
+Status: done
 
 **B10 · Bug bash** · Owner: Codex, with Grok for a second opinion · *Done when:* the full demo path works 5 times in a row on the phone with 3 different cards, there are no crashes, and every bug found is fixed or listed under Known bugs.
 
