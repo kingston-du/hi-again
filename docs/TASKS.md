@@ -37,7 +37,7 @@ Status: done (v3: Sticker, Stamp, Buttons, SocialButton/SocialRow, ScanButton; l
 
 **B6 · Onboarding** · Owner: Claude · Files: `WelcomeView`, `MakeBadgeView`, `LinkCardView`, `RootView` · *Done when:* a new user signs in with Apple, makes a badge (live preview, Next rules), and links a card (`taken` shows "This card is already linked to someone else."), then lands on People. A returning user goes straight to People.
 
-Status: todo
+Status: done (needs a real Apple sign-in on the phone to confirm). BadgeFields/BadgeDraft in MakeBadgeView.swift are reusable for Edit badge in Me
 
 **B7 · Scan** · Owner: Claude · Files: `ScanResultView`, the scan action in `PeopleView` · *Done when:* Tap → NFC sheet → `scanCard` with the place → the full-screen result with the drop-in badge, stamp and haptic for met and already met, and the unknown, own-card and couldn't-read states. The note saves on Done. Scan to badge in under 3 seconds.
 
@@ -49,7 +49,7 @@ Status: done
 
 **B9 · Me** · Owner: Cursor · Files: `MeView` · *Done when:* the sheet matches Part 2: edit badge reuses `MakeBadgeView`'s fields, relink/unlink works, sign out returns to Welcome.
 
-Status: todo (Cursor, as part of chunk C1)
+Status: doing
 
 **B10 · Bug bash** · Owner: Codex, with Grok for a second opinion · *Done when:* the full demo path works 5 times in a row on the phone with 3 different cards, there are no crashes, and every bug found is fixed or listed under Known bugs.
 
