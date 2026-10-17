@@ -49,9 +49,14 @@ struct WelcomeView: View {
                 }
 
                 #if DEBUG
-                NavigationLink("Debug scan") { DebugScanView() }
-                    .font(Theme.ui(13)).foregroundStyle(Theme.faint)
-                    .frame(maxWidth: .infinity).padding(.top, Theme.Space.m)
+                HStack(spacing: Theme.Space.xl) {
+                    Button("Test account") {
+                        Task { try? await supabase.signInAnonymously() }
+                    }
+                    NavigationLink("Debug scan") { DebugScanView() }
+                }
+                .font(Theme.ui(13)).foregroundStyle(Theme.faint)
+                .frame(maxWidth: .infinity).padding(.top, Theme.Space.m)
                 #endif
             }
             .padding(.horizontal, Theme.Space.xl)

@@ -42,6 +42,13 @@ final class SupabaseService: ObservableObject {
         )
     }
 
+    #if DEBUG
+    /// Test accounts on one phone (demo prep). Needs Anonymous sign-ins on in Supabase.
+    func signInAnonymously() async throws {
+        try await client.auth.signInAnonymously()
+    }
+    #endif
+
     func signOut() async throws {
         try await client.auth.signOut()
     }
