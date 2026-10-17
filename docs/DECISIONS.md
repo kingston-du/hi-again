@@ -12,3 +12,4 @@
 - Non-app users see a profile through a public web badge page opened from a QR (A8). Husky IDs carry no NDEF link and App Clips need an App Store release, so neither is used.
 - meetings: only the note column is updatable (editing other_id would expose any profile). scan_card bounds lat/lng/place, returns only badge fields, and treats a repeat scan of the same person within 2 minutes as the same meeting. unlink_card() added for SupabaseService.unlinkCard().
 - Known limit: card hashes use a salt shipped in the app and there's no scan rate limit. Fine for the demo; mention as future work.
+- You tap someone's card once: Person shows one "Where you met" section, and a repeat scan shows "You've met before" instead of a met-again count. The DB contract is unchanged (scan_card still returns times_met).

@@ -24,7 +24,7 @@
 3. **Link your card:** scan your own card once.
 4. **Tap:** scan someone else's card. Their badge drops in on a violet screen, a "met at" stamp lands on it, and the meeting is saved for both of you with time and place.
 5. **Note:** one optional line on the result screen: "What do you want to remember?"
-6. **People:** everyone you've met, newest first. Tap one to see their badge, socials, and every time you met with your notes.
+6. **People:** everyone you've met, newest first. Tap one to see their badge, socials, where and when you met, and your note.
 7. **Me:** your badge, edit it, your card (relink or unlink), sign out.
 
 That's it: **6 screens** (Welcome, Make your badge, Link your card, People, Scan result, Person) plus a small Me sheet.
@@ -100,11 +100,11 @@ Spacing scale: 4, 8, 12, 16, 24, 32. Radius: rows and badges 24, buttons fully r
 3. **Link your card.** A simple drawing of a card held at the top of an iPhone. "Hold your student ID to the top of your phone." **Scan my card**, then the card's short code appears on your badge in mono (`CARD 4F2A`). Below: **Skip for now**.
 4. **People (home).** Title: "**12** people you've met" with the number in violet. A list of `.row` badges, newest first, each showing the first name, a mono line `HUB · SAT 2:14 PM`, and the note's first line in serif italic. A small circle in your badge color with your initial sits top right and opens Me; the TapButton floats at the bottom. Empty state: "Nobody yet. Tap a card to meet someone." with a hand-drawn arrow toward the Tap button.
 5. **Scan result** (full screen, the signature moment). The screen floods violet, the person's `.large` badge drops in on a spring, then the stamp thunks onto its corner with a success haptic. Then "You met *Maya*." in white, their social buttons, and a white index card: "What do you want to remember?" (one text field). **Done**.
-   - Met again: same, with mono "MET AGAIN · 3RD TIME".
+   - Already met: same screen, with a small "You've met before" line and their existing note in the card. No new meeting is shown (you only tap someone once).
    - Unknown card: butter background, a dashed empty badge with "?", "Not on the app yet." (Add-on A3 turns this into a pending meeting plus "Help them join".)
    - Your own card: "That's *you*."
    - Couldn't read: stay on People and show "Couldn't read that. Hold it near the top of your phone."
-6. **Person.** Their `.large` badge, their social buttons, then a list of meetings, newest first: a small stamp on the left and your note in serif italic on the right (tap to edit). A **…** menu with **Remove Maya**.
+6. **Person.** Their `.large` badge, their social buttons, then one "Where you met" section: a stamp, the place and time, and your note under it (tap to edit). A **…** menu with **Remove Maya**. Uses the person's newest meeting row; older rows (if any) are ignored.
 7. **Me** (sheet). Your badge exactly as others see it, **Edit badge** (same fields as setup), "Your card: linked · 4F2A" with **Relink** and **Unlink**, and **Sign out**.
 
 ### Copy voice
