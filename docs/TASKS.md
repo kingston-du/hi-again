@@ -3,6 +3,12 @@
 One card per job. Claude adds cards; any tool flips its own card's Status (todo → doing → done).
 Full spec: docs/PLAN.md. Rules: AGENTS.md.
 
+### Chunks (bigger hand-offs)
+
+**C1 · Data + People + Me** · Owner: Cursor · Does B3, then B8, then B9 in one session, committing after each card (`B3: …`, `B8: …`, `B9: …`). Files: `Services/SupabaseService.swift`, `Views/PeopleView.swift`, `Views/PersonView.swift`, `Views/MeView.swift`. Views: build the layout and behavior with plain SwiftUI and Theme tokens only (no custom shapes); Claude swaps in the Sticker/Stamp components and final styling afterwards, so keep each row and header in a small private subview that's easy to replace. PeopleView keeps a `@State var scanning` hook and a bottom "Tap a card" button that calls an empty `startScan()` (Claude fills it in B7). Person shows one "Where you met" section (see PLAN Part 2, screen 6). Don't touch Components/, Theme.swift, or the onboarding/scan views. *Done when:* B3, B8 and B9 are each done per their cards.
+
+Status: todo
+
 ### Base MVP
 
 **B0 · Setup** · Owner: kingston (Claude guides) · Part 5, minus Xcode steps 1, 3 and 4 (Claude generated the project with XcodeGen) · *Done when:* the empty app runs on your iPhone, Supabase keys are in `Secrets.xcconfig`, and the fonts are in the folder.
@@ -27,7 +33,7 @@ Status: doing (built and installed; waiting on the two-scan test with a real car
 
 **B5 · Components** · Owner: Claude · Files: `Components/*` · *Done when:* Badge (both sizes, all 6 colors), Stamp, buttons and TapButton look right in Xcode Previews on a paper background, using Theme only.
 
-Status: todo
+Status: todo (Cursor, as part of chunk C1)
 
 **B6 · Onboarding** · Owner: Claude · Files: `WelcomeView`, `MakeBadgeView`, `LinkCardView`, `RootView` · *Done when:* a new user signs in with Apple, makes a badge (live preview, Next rules), and links a card (`taken` shows "This card is already linked to someone else."), then lands on People. A returning user goes straight to People.
 
@@ -39,11 +45,11 @@ Status: todo
 
 **B8 · People and Person** · Owner: Codex (or Claude if it has room) · Files: `PeopleView`, `PersonView` · *Done when:* the list matches Part 2 (title count, row badges, note preview, pull to refresh, empty state), Person shows socials that open the right app and one "Where you met" section (stamp, place, time, editable note), and Remove works.
 
-Status: todo
+Status: todo (Cursor, as part of chunk C1)
 
 **B9 · Me** · Owner: Cursor · Files: `MeView` · *Done when:* the sheet matches Part 2: edit badge reuses `MakeBadgeView`'s fields, relink/unlink works, sign out returns to Welcome.
 
-Status: todo
+Status: todo (Cursor, as part of chunk C1)
 
 **B10 · Bug bash** · Owner: Codex, with Grok for a second opinion · *Done when:* the full demo path works 5 times in a row on the phone with 3 different cards, there are no crashes, and every bug found is fixed or listed under Known bugs.
 
