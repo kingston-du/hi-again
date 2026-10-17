@@ -45,7 +45,7 @@ Status: todo
 
 **B8 · People and Person** · Owner: Codex (or Claude if it has room) · Files: `PeopleView`, `PersonView` · *Done when:* the list matches Part 2 (title count, row badges, note preview, pull to refresh, empty state), Person shows socials that open the right app and one "Where you met" section (stamp, place, time, editable note), and Remove works.
 
-Status: doing
+Status: done
 
 **B9 · Me** · Owner: Cursor · Files: `MeView` · *Done when:* the sheet matches Part 2: edit badge reuses `MakeBadgeView`'s fields, relink/unlink works, sign out returns to Welcome.
 
