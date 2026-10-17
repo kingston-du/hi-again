@@ -98,7 +98,12 @@ create policy "meetings_delete" on public.meetings
 grant usage on schema public to authenticated;
 
 grant select, insert, update on public.profiles to authenticated;
-grant select, update, delete on public.meetings to authenticated;
+grant select, delete on public.meetings to authenticated;
+-- Only the note is editable. Changing other_id would let someone read any profile
+-- through profiles_select, so table-wide UPDATE (and Supabase's default INSERT) is revoked.
+revoke insert, update on public.meetings from anon, authenticated;
+grant update (note) on public.meetings to authenticated;
+revoke all on public.profiles, public.meetings from anon;
 
 revoke all on public.cards from public, anon, authenticated;
 
@@ -173,19 +178,38 @@ begin
     return jsonb_build_object('status', 'self');
   end if;
 
-  insert into public.meetings (owner_id, other_id, met_at, lat, lng, place_name)
-  values (auth.uid(), v_card_user, v_now, p_lat, p_lng, p_place)
-  returning id into v_meeting_id;
+  -- The scanner writes the other person's row too, so keep its content sane.
+  if p_lat is null or p_lng is null or p_lat not between -90 and 90 or p_lng not between -180 and 180 then
+    p_lat := null; p_lng := null;
+  end if;
+  p_place := nullif(left(trim(p_place), 80), '');
 
-  insert into public.meetings (owner_id, other_id, met_at, lat, lng, place_name)
-  values (v_card_user, auth.uid(), v_now, p_lat, p_lng, p_place);
+  -- A double tap within 2 minutes returns the same meeting instead of adding rows.
+  select m.id into v_meeting_id
+  from public.meetings m
+  where m.owner_id = auth.uid() and m.other_id = v_card_user
+    and m.met_at > v_now - interval '2 minutes'
+  order by m.met_at desc
+  limit 1;
+
+  if v_meeting_id is null then
+    insert into public.meetings (owner_id, other_id, met_at, lat, lng, place_name)
+    values (auth.uid(), v_card_user, v_now, p_lat, p_lng, p_place)
+    returning id into v_meeting_id;
+
+    insert into public.meetings (owner_id, other_id, met_at, lat, lng, place_name)
+    values (v_card_user, auth.uid(), v_now, p_lat, p_lng, p_place);
+  end if;
 
   select count(*)::int into v_times_met
   from public.meetings
   where owner_id = auth.uid()
     and other_id = v_card_user;
 
-  select to_jsonb(p) into v_profile
+  select jsonb_build_object(
+    'id', p.id, 'first_name', p.first_name, 'last_name', p.last_name, 'badge_color', p.badge_color,
+    'instagram', p.instagram, 'snapchat', p.snapchat, 'linkedin', p.linkedin
+  ) into v_profile
   from public.profiles p
   where p.id = v_card_user;
 
@@ -197,6 +221,23 @@ begin
   );
 end;
 $$;
+
+create or replace function public.unlink_card()
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if auth.uid() is null then
+    raise exception 'not authenticated';
+  end if;
+  delete from public.cards where user_id = auth.uid();
+end;
+$$;
+
+revoke all on function public.unlink_card() from public, anon;
+grant execute on function public.unlink_card() to authenticated;
 
 revoke all on function public.claim_card(text) from public, anon;
 revoke all on function public.scan_card(text, float8, float8, text) from public, anon;

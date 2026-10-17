@@ -7,7 +7,7 @@ Last updated: Sat 12:55 PM by Cursor
 - B2 `supabase/schema.sql`: profiles/cards/meetings + RLS + `claim_card` / `scan_card` (execute → authenticated). Paste into Supabase SQL Editor to apply.
 
 ## In progress
--
+- B2 schema reviewed and hardened by Claude; waiting for kingston to run it in the Supabase SQL Editor (CLI can't reach Postgres on this network)
 
 ## Next
 - B0 Setup (kingston: signing on the phone, Supabase, Secrets.xcconfig, fonts)

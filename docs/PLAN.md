@@ -155,13 +155,14 @@ Three tables. A meeting is stored **twice, once per person**, so each person own
 |---|---|---|
 | `profiles` | `id uuid` PK = auth user id · `first_name text not null` · `last_name text` · `badge_color text not null default 'lilac'` · `instagram text` · `snapchat text` · `linkedin text` · `created_at timestamptz default now()` | Read: your own, or anyone you have a meeting row with. Insert/update: your own only |
 | `cards` | `card_hash text` PK · `user_id uuid unique` → profiles · `claimed_at timestamptz default now()` | No direct access at all. Only the two functions below touch it |
-| `meetings` | `id uuid` PK default `gen_random_uuid()` · `owner_id uuid` → profiles · `other_id uuid` → profiles · `met_at timestamptz default now()` · `lat float8` · `lng float8` · `place_name text` · `note text` | Read, update and delete: only where `owner_id = auth.uid()`. No direct inserts (only `scan_card` inserts) |
+| `meetings` | `id uuid` PK default `gen_random_uuid()` · `owner_id uuid` → profiles · `other_id uuid` → profiles · `met_at timestamptz default now()` · `lat float8` · `lng float8` · `place_name text` · `note text` | Read, update and delete: only where `owner_id = auth.uid()`. Only the `note` column is updatable. No direct inserts (only `scan_card` inserts) |
 
 Handles are stored without "@". `card_hash` = SHA-256 hex of (`CARD_SALT` + the card UID as hex). The raw UID never leaves the phone.
 
-**Two database functions** (`security definer`, `set search_path = public`, executable by `authenticated`):
+**Three database functions** (`security definer`, `set search_path = public`, executable by `authenticated`):
 
 - `claim_card(p_hash text) returns text`. Returns `'linked'` (deletes any old card for this user, then links this one), `'already_yours'`, or `'taken'` (another user has it; change nothing).
+- `unlink_card() returns void`. Deletes the caller's card row. `SupabaseService.unlinkCard()` calls it.
 - `scan_card(p_hash text, p_lat float8, p_lng float8, p_place text) returns jsonb`:
   - No card row: `{"status":"unknown"}`, saves nothing.
   - Card belongs to the caller: `{"status":"self"}`.
