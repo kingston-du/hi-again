@@ -28,11 +28,11 @@ final class LocationService: NSObject, CLLocationManagerDelegate {
     /// Asks permission once if needed, then returns the first location (or nil if denied).
     @MainActor
     private func fix() async -> CLLocation? {
-        if let recent = manager.location, recent.timestamp.timeIntervalSinceNow > -60 { return recent }
         switch manager.authorizationStatus {
         case .denied, .restricted: return nil
         default: break
         }
+        if let recent = manager.location, recent.timestamp.timeIntervalSinceNow > -60 { return recent }
         fixContinuation?.resume(returning: nil)
         return await withCheckedContinuation { continuation in
             fixContinuation = continuation

@@ -24,6 +24,8 @@ final class NFCService: NSObject, NFCTagReaderSessionDelegate {
     func readCardUID() async throws -> Data {
         guard NFCTagReaderSession.readingAvailable else { throw NFCError.unavailable }
         finish(.failure(NFCError.cancelled))  // a previous read that never ended
+        session?.invalidate()
+        session = nil
         return try await withCheckedThrowingContinuation { continuation in
             self.continuation = continuation
             guard let session = NFCTagReaderSession(pollingOption: [.iso14443, .iso15693], delegate: self, queue: .main) else {
@@ -46,6 +48,7 @@ final class NFCService: NSObject, NFCTagReaderSessionDelegate {
     func tagReaderSessionDidBecomeActive(_ session: NFCTagReaderSession) {}
 
     func tagReaderSession(_ session: NFCTagReaderSession, didInvalidateWithError error: Error) {
+        guard session === self.session else { return }  // a stale session from an earlier read
         let code = (error as? NFCReaderError)?.code
         let cancelled = code == .readerSessionInvalidationErrorUserCanceled
             || code == .readerSessionInvalidationErrorFirstNDEFTagRead
@@ -54,9 +57,9 @@ final class NFCService: NSObject, NFCTagReaderSessionDelegate {
     }
 
     func tagReaderSession(_ session: NFCTagReaderSession, didDetect tags: [NFCTag]) {
-        guard let tag = tags.first else { return }
+        guard session === self.session, let tag = tags.first else { return }
         session.connect(to: tag) { [weak self] error in
-            guard let self else { return }
+            guard let self, session === self.session else { return }
             if error != nil {
                 session.invalidate(errorMessage: "Couldn't read that. Try again.")
                 self.finish(.failure(NFCError.unreadable))
@@ -68,8 +71,9 @@ final class NFCService: NSObject, NFCTagReaderSessionDelegate {
                 return
             }
             session.alertMessage = "Got it."
-            session.invalidate()
             self.finish(.success(uid))
+            self.session = nil
+            session.invalidate()
         }
     }
 
