@@ -6,7 +6,13 @@ struct HiAgainApp: App {
 
     var body: some Scene {
         WindowGroup {
-            RootView()
+            Group {
+                #if DEBUG
+                if ProcessInfo.processInfo.arguments.contains("-gallery") { DebugGalleryView() } else { RootView() }
+                #else
+                RootView()
+                #endif
+            }
                 .environmentObject(supabase)
                 .preferredColorScheme(.light)
         }

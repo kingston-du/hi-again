@@ -33,7 +33,7 @@ Status: doing (built and installed; waiting on the two-scan test with a real car
 
 **B5 · Components** · Owner: Claude · Files: `Components/*` · *Done when:* Badge (both sizes, all 6 colors), Stamp, buttons and TapButton look right in Xcode Previews on a paper background, using Theme only.
 
-Status: todo (Cursor, as part of chunk C1)
+Status: done (v3: Sticker, Stamp, Buttons, SocialButton/SocialRow, ScanButton; launch with -gallery to see them) (Cursor, as part of chunk C1)
 
 **B6 · Onboarding** · Owner: Claude · Files: `WelcomeView`, `MakeBadgeView`, `LinkCardView`, `RootView` · *Done when:* a new user signs in with Apple, makes a badge (live preview, Next rules), and links a card (`taken` shows "This card is already linked to someone else."), then lands on People. A returning user goes straight to People.
 
@@ -45,7 +45,7 @@ Status: todo
 
 **B8 · People and Person** · Owner: Codex (or Claude if it has room) · Files: `PeopleView`, `PersonView` · *Done when:* the list matches Part 2 (title count, row badges, note preview, pull to refresh, empty state), Person shows socials that open the right app and one "Where you met" section (stamp, place, time, editable note), and Remove works.
 
-Status: todo (Cursor, as part of chunk C1)
+Status: doing
 
 **B9 · Me** · Owner: Cursor · Files: `MeView` · *Done when:* the sheet matches Part 2: edit badge reuses `MakeBadgeView`'s fields, relink/unlink works, sign out returns to Welcome.
 
