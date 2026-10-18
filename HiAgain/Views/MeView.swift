@@ -312,13 +312,7 @@ private struct QRMeetSheet: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: Theme.Space.xl) {
-                Text("They scan this with their Camera app.")
-                    .font(Theme.ui(15))
-                    .foregroundStyle(Theme.muted)
-                    .multilineTextAlignment(.center)
-                    .frame(maxWidth: .infinity)
-
+            VStack(spacing: Theme.Space.l) {
                 if let image = QRCode.image(for: url.absoluteString, dimension: 240) {
                     Image(uiImage: image)
                         .interpolation(.none)
@@ -354,10 +348,14 @@ private struct QRMeetSheet: View {
                 Spacer(minLength: 0)
             }
             .padding(.horizontal, Theme.Space.l)
-            .padding(.top, Theme.Space.l)
+            .padding(.top, Theme.Space.m)
+            .padding(.bottom, Theme.Space.l)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             .background(Theme.paper.ignoresSafeArea())
             .navigationTitle("Let them scan")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(Theme.paper, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Done") { dismiss() }

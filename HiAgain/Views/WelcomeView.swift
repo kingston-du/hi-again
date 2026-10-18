@@ -15,11 +15,8 @@ struct WelcomeView: View {
 
                 Spacer(minLength: Theme.Space.xl)
 
-                ZStack(alignment: .bottomTrailing) {
-                    Sticker(firstName: "Maya", color: .red, size: .large, tilt: -4)
-                    Stamp(place: "HUB", date: .now, rotation: 10).offset(x: 34, y: 58)
-                }
-                .frame(maxWidth: .infinity)
+                StampedSticker(firstName: "Maya", color: .red, place: "HUB", date: .now, tilt: -4, stampRotation: 10)
+                    .frame(maxWidth: .infinity)
 
                 Spacer(minLength: Theme.Space.xxl)
 

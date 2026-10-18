@@ -7,9 +7,14 @@ struct Profile: Codable, Identifiable, Hashable {
     var firstName: String
     var lastName: String?
     var badgeColor: BadgeColor
+    var bio: String? = nil
     var instagram: String?
     var snapchat: String?
     var linkedin: String?
+    var tiktok: String? = nil
+    var phone: String? = nil
+    var discord: String? = nil
+    var email: String? = nil
     var slug: String?
 
     enum CodingKeys: String, CodingKey {
@@ -17,6 +22,7 @@ struct Profile: Codable, Identifiable, Hashable {
         case firstName = "first_name"
         case lastName = "last_name"
         case badgeColor = "badge_color"
-        case instagram, snapchat, linkedin, slug
+        case bio
+        case instagram, snapchat, linkedin, tiktok, phone, discord, email, slug
     }
 }

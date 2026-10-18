@@ -38,40 +38,85 @@ extension ButtonStyle where Self == SecondaryButtonStyle {
 }
 
 enum Social: String, CaseIterable, Identifiable {
-    case instagram, snapchat, linkedin
+    case instagram, snapchat, linkedin, tiktok, phone, discord, email
     var id: String { rawValue }
 
     var label: String {
-        switch self { case .instagram: "Instagram"; case .snapchat: "Snapchat"; case .linkedin: "LinkedIn" }
+        switch self {
+        case .instagram: "Instagram"
+        case .snapchat: "Snapchat"
+        case .linkedin: "LinkedIn"
+        case .tiktok: "TikTok"
+        case .phone: "Phone"
+        case .discord: "Discord"
+        case .email: "Email"
+        }
     }
-    /// Shown before the handle: "@" or "in/".
-    var prefix: String { self == .linkedin ? "in/" : "@" }
+
+    /// Shown before the value: "@", "in/", or empty for phone/email.
+    var prefix: String {
+        switch self {
+        case .linkedin: "in/"
+        case .phone, .email: ""
+        default: "@"
+        }
+    }
+
+    /// Discord has no reliable public profile URL — tap copies the username.
+    var copiesOnTap: Bool { self == .discord }
+
+    var accessorySystemName: String {
+        copiesOnTap ? "doc.on.doc" : "arrow.up.right"
+    }
 
     func appURL(_ handle: String) -> URL? {
+        let h = handle.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? handle
         switch self {
-        case .instagram: URL(string: "instagram://user?username=\(handle)")
-        case .snapchat: URL(string: "snapchat://add/\(handle)")
-        case .linkedin: URL(string: "linkedin://in/\(handle)")
+        case .instagram: return URL(string: "instagram://user?username=\(h)")
+        case .snapchat: return URL(string: "snapchat://add/\(h)")
+        case .linkedin: return URL(string: "linkedin://in/\(h)")
+        case .tiktok: return URL(string: "snssdk1233://user?unique_id=\(h)")
+        case .phone, .discord, .email: return nil
         }
     }
 
     func webURL(_ handle: String) -> URL? {
+        let h = handle.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? handle
         switch self {
-        case .instagram: URL(string: "https://instagram.com/\(handle)")
-        case .snapchat: URL(string: "https://snapchat.com/add/\(handle)")
-        case .linkedin: URL(string: "https://linkedin.com/in/\(handle)")
+        case .instagram: return URL(string: "https://instagram.com/\(h)")
+        case .snapchat: return URL(string: "https://snapchat.com/add/\(h)")
+        case .linkedin: return URL(string: "https://linkedin.com/in/\(h)")
+        case .tiktok: return URL(string: "https://tiktok.com/@\(h)")
+        case .phone:
+            let digits = handle.filter { $0.isNumber || $0 == "+" }
+            return digits.isEmpty ? nil : URL(string: "tel:\(digits)")
+        case .email:
+            let encoded = handle.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? handle
+            return URL(string: "mailto:\(encoded)")
+        case .discord: return nil
         }
     }
 
     static func handles(of profile: Profile) -> [(Social, String)] {
-        [(.instagram, profile.instagram), (.snapchat, profile.snapchat), (.linkedin, profile.linkedin)]
-            .compactMap { s, h in h.flatMap { $0.isEmpty ? nil : (s, $0) } }
+        [
+            (.instagram, profile.instagram),
+            (.snapchat, profile.snapchat),
+            (.linkedin, profile.linkedin),
+            (.tiktok, profile.tiktok),
+            (.phone, profile.phone),
+            (.discord, profile.discord),
+            (.email, profile.email),
+        ]
+        .compactMap { s, h in h.flatMap { $0.isEmpty ? nil : (s, $0) } }
     }
 }
 
-/// Opens the network's app, falling back to its website.
+/// Opens the network's app, falls back to the website, or copies Discord.
 func openSocial(_ social: Social, handle: String) {
-    let handle = handle.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? handle
+    if social.copiesOnTap {
+        UIPasteboard.general.string = handle
+        return
+    }
     guard let web = social.webURL(handle) else { return }
     if let app = social.appURL(handle) {
         UIApplication.shared.open(app) { ok in if !ok { UIApplication.shared.open(web) } }
@@ -91,18 +136,20 @@ struct SocialButton: View {
                 Text(social.label).font(Theme.ui(16, weight: .semibold))
                 Spacer()
                 Text(social.prefix + handle).font(Theme.ui(15)).opacity(0.85)
-                Image(systemName: "arrow.up.right").font(Theme.ui(13, weight: .semibold))
+                Image(systemName: social.accessorySystemName).font(Theme.ui(13, weight: .semibold))
             }
             .foregroundStyle(.white)
             .padding(.horizontal, Theme.Space.l)
             .frame(height: 48)
             .overlay(RoundedRectangle(cornerRadius: Theme.buttonRadius).strokeBorder(.white, lineWidth: 1.5))
         }
-        .accessibilityLabel("Open \(social.label), \(handle)")
+        .accessibilityLabel(social.copiesOnTap
+            ? "Copy \(social.label), \(handle)"
+            : "Open \(social.label), \(handle)")
     }
 }
 
-/// Grouped row version for Person: label, handle, ↗.
+/// Grouped row version for Person: label, handle, ↗ (or copy for Discord).
 struct SocialLinkRow: View {
     let social: Social
     let handle: String
@@ -113,12 +160,17 @@ struct SocialLinkRow: View {
                 Text(social.label).font(Theme.ui(17)).foregroundStyle(Theme.ink)
                 Spacer()
                 Text(social.prefix + handle).font(Theme.ui(17)).foregroundStyle(Theme.muted)
-                Image(systemName: "arrow.up.right").font(Theme.ui(13, weight: .semibold)).foregroundStyle(Theme.faint)
+                Image(systemName: social.accessorySystemName)
+                    .font(Theme.ui(13, weight: .semibold))
+                    .foregroundStyle(Theme.faint)
             }
             .padding(.horizontal, Theme.Space.l)
             .frame(height: Theme.rowHeight)
             .contentShape(Rectangle())
         }
+        .accessibilityLabel(social.copiesOnTap
+            ? "Copy \(social.label), \(handle)"
+            : "Open \(social.label), \(handle)")
     }
 }
 

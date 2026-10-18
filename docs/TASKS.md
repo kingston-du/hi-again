@@ -92,3 +92,7 @@ Status: todo
 **A8 · QR meet (web Add Me)** · Owners: Cursor (SQL + `web/meet.html`), Claude (QR on Me) · Files: `supabase/qr_meet.sql`, `web/meet.html`, `web/config.example.js`, `Models/Profile.swift`, `Services/SupabaseService.swift`, `Services/QRCode.swift`, `Views/MeView.swift` · Me shows **Let them scan** — a QR (Core Image) and Share for `https://<github-pages-url>/meet.html?b=<slug>`. `profiles.slug` (8 chars) + `public_badge(p_slug)` (anon) + `meet_via_web(...)` (authenticated / anonymous). Guest page shows your HELLO sticker, collects their badge, **Add Me** creates dual meeting rows (`place_name` `QR code`). Host pull-to-refreshes People. Enable Anonymous sign-ins in Supabase Auth. *Done when:* someone without the app scans your QR, submits the form, and appears in your People.
 
 Status: done
+
+**A9 · Bio + optional contacts** · Owner: Cursor · Files: `docs/PLAN.md`, `docs/DECISIONS.md`, `supabase/profile_bio_contacts.sql`, `supabase/schema.sql`, `supabase/qr_meet.sql`, `Models/Profile.swift`, `Components/Buttons.swift`, `Views/MakeBadgeView.swift`, `Views/PersonView.swift`, `Views/ScanResultView.swift`, `web/meet.html` · Add `bio`, `tiktok`, `phone`, `discord`, `email` on profiles; Make badge first-name-only; show bio + filled contacts on Person / scan / QR host. *Done when:* migration pasted, build clean, edit badge saves any subset, viewers see only what's filled.
+
+Status: done

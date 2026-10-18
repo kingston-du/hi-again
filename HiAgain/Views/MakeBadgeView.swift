@@ -5,20 +5,25 @@ struct BadgeDraft: Equatable {
     var firstName = ""
     var lastName = ""
     var color: BadgeColor = .red
+    var bio = ""
     var instagram = ""
     var snapchat = ""
     var linkedin = ""
+    var tiktok = ""
+    var phone = ""
+    var discord = ""
+    var email = ""
 
     init() {}
 
     init(_ p: Profile) {
         firstName = p.firstName; lastName = p.lastName ?? ""; color = p.badgeColor
+        bio = p.bio ?? ""
         instagram = p.instagram ?? ""; snapchat = p.snapchat ?? ""; linkedin = p.linkedin ?? ""
+        tiktok = p.tiktok ?? ""; phone = p.phone ?? ""; discord = p.discord ?? ""; email = p.email ?? ""
     }
 
-    var isValid: Bool {
-        !clean(firstName).isEmpty && ![instagram, snapchat, linkedin].allSatisfy { handle($0) == nil }
-    }
+    var isValid: Bool { !clean(firstName).isEmpty }
 
     func profile(id: UUID, slug: String? = nil) -> Profile {
         Profile(
@@ -26,19 +31,47 @@ struct BadgeDraft: Equatable {
             firstName: clean(firstName),
             lastName: clean(lastName).isEmpty ? nil : clean(lastName),
             badgeColor: color,
+            bio: bioValue(bio),
             instagram: handle(instagram),
             snapchat: handle(snapchat),
             linkedin: handle(linkedin),
+            tiktok: handle(tiktok),
+            phone: phoneValue(phone),
+            discord: handle(discord),
+            email: emailValue(email),
             slug: slug
         )
     }
 
     private func clean(_ s: String) -> String { s.trimmingCharacters(in: .whitespacesAndNewlines) }
 
+    private func bioValue(_ s: String) -> String? {
+        let t = clean(s)
+        guard !t.isEmpty else { return nil }
+        return String(t.prefix(160))
+    }
+
+    private func phoneValue(_ s: String) -> String? {
+        let t = clean(s)
+        guard !t.isEmpty else { return nil }
+        let allowed = t.filter { $0.isNumber || $0 == "+" || $0 == "-" || $0 == " " || $0 == "(" || $0 == ")" }
+        return allowed.isEmpty ? nil : String(allowed.prefix(32))
+    }
+
+    private func emailValue(_ s: String) -> String? {
+        let t = clean(s).lowercased()
+        return t.isEmpty ? nil : String(t.prefix(120))
+    }
+
     /// Strips "@", "in/" and URL prefixes; nil if empty.
     private func handle(_ s: String) -> String? {
         var h = clean(s)
-        for prefix in ["https://", "http://", "www.", "instagram.com/", "snapchat.com/add/", "linkedin.com/in/", "@", "in/"] where h.lowercased().hasPrefix(prefix) {
+        let prefixes = [
+            "https://", "http://", "www.",
+            "instagram.com/", "snapchat.com/add/", "linkedin.com/in/",
+            "tiktok.com/@", "tiktok.com/", "@", "in/",
+        ]
+        for prefix in prefixes where h.lowercased().hasPrefix(prefix) {
             h = String(h.dropFirst(prefix.count))
         }
         h = h.trimmingCharacters(in: CharacterSet(charactersIn: "/ "))
@@ -46,13 +79,14 @@ struct BadgeDraft: Equatable {
     }
 }
 
-/// Live sticker preview, color swatches, names and socials.
+/// Live sticker preview, color swatches, names, bio and contacts.
 struct BadgeFields: View {
     @Binding var draft: BadgeDraft
     var scrollProxy: ScrollViewProxy? = nil
 
     private enum Field: Hashable {
-        case firstName, lastName, instagram, snapchat, linkedin
+        case firstName, lastName, bio
+        case instagram, snapchat, linkedin, tiktok, phone, discord, email
     }
 
     @FocusState private var focused: Field?
@@ -85,15 +119,44 @@ struct BadgeFields: View {
             .groupBox()
 
             VStack(alignment: .leading, spacing: Theme.Space.s) {
+                TextField("Short bio (school, year…)", text: $draft.bio, axis: .vertical)
+                    .font(Theme.ui(17)).foregroundStyle(Theme.ink)
+                    .lineLimit(2...3)
+                    .padding(.horizontal, Theme.Space.l)
+                    .padding(.vertical, Theme.Space.m)
+                    .focused($focused, equals: .bio)
+                    .id(Field.bio)
+                    .onChange(of: draft.bio) { _, next in
+                        if next.count > 160 { draft.bio = String(next.prefix(160)) }
+                    }
+                .groupBox()
+                Text("Optional · \(draft.bio.count)/160")
+                    .font(Theme.ui(13)).foregroundStyle(Theme.muted)
+                    .padding(.leading, Theme.Space.l)
+            }
+
+            VStack(alignment: .leading, spacing: Theme.Space.s) {
                 VStack(spacing: 0) {
                     socialField(.instagram, text: $draft.instagram, field: .instagram)
                     divider
                     socialField(.snapchat, text: $draft.snapchat, field: .snapchat)
                     divider
                     socialField(.linkedin, text: $draft.linkedin, field: .linkedin)
+                    divider
+                    socialField(.tiktok, text: $draft.tiktok, field: .tiktok)
+                    divider
+                    socialField(.phone, text: $draft.phone, field: .phone, placeholder: "number")
+                        .keyboardType(.phonePad)
+                        .textContentType(.telephoneNumber)
+                    divider
+                    socialField(.discord, text: $draft.discord, field: .discord)
+                    divider
+                    socialField(.email, text: $draft.email, field: .email, placeholder: "you@school.edu")
+                        .keyboardType(.emailAddress)
+                        .textContentType(.emailAddress)
                 }
                 .groupBox()
-                Text("At least one").font(Theme.ui(13)).foregroundStyle(Theme.muted).padding(.leading, Theme.Space.l)
+                Text("Optional").font(Theme.ui(13)).foregroundStyle(Theme.muted).padding(.leading, Theme.Space.l)
             }
         }
         .onChange(of: focused) { _, field in
@@ -116,11 +179,18 @@ struct BadgeFields: View {
             .id(field)
     }
 
-    private func socialField(_ social: Social, text: Binding<String>, field: Field) -> some View {
+    private func socialField(
+        _ social: Social,
+        text: Binding<String>,
+        field: Field,
+        placeholder: String = "handle"
+    ) -> some View {
         HStack(spacing: Theme.Space.s) {
             Text(social.label).font(Theme.ui(17)).foregroundStyle(Theme.ink).frame(width: 96, alignment: .leading)
-            Text(social.prefix).font(Theme.ui(17)).foregroundStyle(Theme.faint)
-            TextField("handle", text: text)
+            if !social.prefix.isEmpty {
+                Text(social.prefix).font(Theme.ui(17)).foregroundStyle(Theme.faint)
+            }
+            TextField(placeholder, text: text)
                 .font(Theme.ui(17)).foregroundStyle(Theme.ink)
                 .textInputAutocapitalization(.never).autocorrectionDisabled()
                 .focused($focused, equals: field)

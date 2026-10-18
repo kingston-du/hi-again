@@ -72,14 +72,16 @@ private struct MetView: View {
         ScrollViewReader { proxy in
             ScrollView {
                 VStack(alignment: .leading, spacing: Theme.Space.l) {
-                    Text(at.formatted(.dateTime.weekday(.wide).hour().minute()))
-                        .font(Theme.ui(15, weight: .semibold)).foregroundStyle(.white.opacity(0.85))
-
-                    ZStack(alignment: .bottomTrailing) {
-                        Sticker(firstName: profile.firstName, color: profile.badgeColor == .red ? .black : profile.badgeColor,
-                                size: .large, tilt: -3)
-                        Stamp(place: place?.name, date: at, color: .white, rotation: 12)
-                            .offset(x: 34, y: 58)
+                    StampedSticker(
+                        firstName: profile.firstName,
+                        color: profile.badgeColor == .red ? .black : profile.badgeColor,
+                        place: place?.name,
+                        date: at,
+                        stampColor: .white,
+                        tilt: -3,
+                        stampRotation: 12
+                    ) { stamp in
+                        stamp
                             .scaleEffect(stamped ? 1 : 1.15)
                             .opacity(stamped ? 1 : 0)
                     }
@@ -95,6 +97,10 @@ private struct MetView: View {
                             .font(Theme.title(34)).tracking(Theme.titleTracking).foregroundStyle(.white)
                         if let name = place?.name {
                             Text(name).font(Theme.ui(17)).foregroundStyle(.white.opacity(0.85))
+                        }
+                        if let bio = profile.bio?.trimmingCharacters(in: .whitespacesAndNewlines), !bio.isEmpty {
+                            Text(bio).font(Theme.ui(15)).foregroundStyle(.white.opacity(0.85))
+                                .fixedSize(horizontal: false, vertical: true)
                         }
                     }
 

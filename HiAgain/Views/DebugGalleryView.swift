@@ -8,11 +8,7 @@ struct DebugGalleryView: View {
             VStack(alignment: .leading, spacing: 24) {
                 (Text("hi again").font(Theme.wordmark()) + Text(".").font(Theme.wordmark()).foregroundColor(Theme.stamp))
                 Text("People").font(Theme.title()).tracking(Theme.titleTracking)
-                ZStack(alignment: .bottomTrailing) {
-                    Sticker(firstName: "Maya", color: .red, size: .large, tilt: -3)
-                    Stamp(place: "HUB", date: .now).offset(x: 30, y: 30)
-                }
-                .padding(.bottom, 30)
+                StampedSticker(firstName: "Maya", color: .red, place: "HUB", date: .now, tilt: -3)
                 HStack { ForEach(BadgeColor.allCases, id: \.self) { Sticker(firstName: "Maya", color: $0, size: .row) } }
                 Sticker(firstName: "Kingston", color: .yellow, size: .medium)
                 Button("Next") {}.buttonStyle(.primary)

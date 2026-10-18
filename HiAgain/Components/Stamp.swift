@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// A round rubber stamp: place and date around the ring, MET / date / time in the middle.
+/// A round rubber stamp: place around the ring, MET / date / time in the middle (date only once).
 struct Stamp: View {
     var place: String?
     var date: Date
@@ -29,9 +29,8 @@ struct Stamp: View {
     }
 
     private var ringText: String {
-        let day = date.formatted(.dateTime.weekday(.abbreviated).month(.abbreviated).day()).uppercased()
         let where_ = (place?.isEmpty == false ? place! : "HI AGAIN").uppercased()
-        let text = "\(where_) • \(day) • "
+        let text = "\(where_) • "
         return text.count < 24 ? text + text : text
     }
 }

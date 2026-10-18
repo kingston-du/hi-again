@@ -114,14 +114,27 @@ private struct PersonHeader: View {
     let profile: Profile
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Theme.Space.s) {
+        VStack(spacing: Theme.Space.m) {
             Sticker(firstName: profile.firstName, color: profile.badgeColor, size: .large)
                 .frame(maxWidth: .infinity)
 
-            if let last = profile.lastName, !last.isEmpty {
-                Text("\(profile.firstName) \(last)")
-                    .font(Theme.ui(15))
-                    .foregroundStyle(Theme.muted)
+            VStack(spacing: Theme.Space.s) {
+                if let last = profile.lastName, !last.isEmpty {
+                    Text("\(profile.firstName) \(last)")
+                        .font(Theme.ui(17, weight: .semibold))
+                        .foregroundStyle(Theme.ink)
+                        .multilineTextAlignment(.center)
+                        .frame(maxWidth: .infinity)
+                }
+
+                if let bio = profile.bio?.trimmingCharacters(in: .whitespacesAndNewlines), !bio.isEmpty {
+                    Text(bio)
+                        .font(Theme.ui(15))
+                        .foregroundStyle(Theme.muted)
+                        .multilineTextAlignment(.center)
+                        .frame(maxWidth: .infinity)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
         }
     }
@@ -147,16 +160,10 @@ private struct WhereYouMetSection: View {
                     diameter: 92
                 )
 
-                VStack(alignment: .leading, spacing: Theme.Space.xs) {
-                    Text(meeting?.placeName ?? "Somewhere")
-                        .font(Theme.ui(17, weight: .semibold))
-                        .foregroundStyle(Theme.ink)
-                    if let metAt = meeting?.metAt {
-                        Text(Self.dateTime.string(from: metAt))
-                            .font(Theme.ui(15))
-                            .foregroundStyle(Theme.muted)
-                    }
-                }
+                Text(meeting?.placeName ?? "Somewhere")
+                    .font(Theme.ui(17, weight: .semibold))
+                    .foregroundStyle(Theme.ink)
+
                 Spacer(minLength: 0)
             }
 
@@ -168,13 +175,11 @@ private struct WhereYouMetSection: View {
             )
         }
     }
+}
 
-    private static let dateTime: DateFormatter = {
-        let f = DateFormatter()
-        f.locale = Locale(identifier: "en_US_POSIX")
-        f.dateFormat = "EEEE, MMM d · h:mm a"
-        return f
-    }()
+private struct NoteLine: Identifiable, Equatable {
+    let id: UUID
+    var text: String
 }
 
 private struct NoteEditor: View {
@@ -183,57 +188,62 @@ private struct NoteEditor: View {
     let onSave: () -> Void
     var scrollProxy: ScrollViewProxy? = nil
 
-    @FocusState private var focused: Bool
+    @FocusState private var focusedLine: UUID?
+    @State private var editLines: [NoteLine] = []
 
-    /// Matches ScanResultView.NoteCard: SF ~16–17 with rules every 22 pt under the baseline.
-    private let ruleSpacing: CGFloat = 22
-    private let ruleCount = 6
+    private let maxLines = 8
+
+    private var isEmpty: Bool {
+        text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.Space.s) {
-            Group {
-                if isEditing {
-                    TextField("What do you want to remember?", text: $text, axis: .vertical)
+            if isEditing {
+                VStack(alignment: .leading, spacing: 0) {
+                    ForEach($editLines) { $line in
+                        TextField(
+                            line.id == editLines.first?.id ? "What do you want to remember?" : "",
+                            text: $line.text
+                        )
                         .font(Theme.ui(16))
                         .foregroundStyle(Theme.ink)
-                        .lineLimit(3...6)
-                        .focused($focused)
-                } else {
-                    Button {
-                        isEditing = true
-                    } label: {
-                        HStack(alignment: .top) {
-                            Text(display)
-                                .font(Theme.ui(16))
-                                .foregroundStyle(text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                                                 ? Theme.faint : Theme.ink)
-                                .multilineTextAlignment(.leading)
-                                .fixedSize(horizontal: false, vertical: true)
-                            Spacer(minLength: 0)
+                        .focused($focusedLine, equals: line.id)
+                        .submitLabel(.return)
+                        .onSubmit { submit(after: line.id) }
+                        .onChange(of: line.text) { _, newValue in
+                            if newValue.contains("\n") {
+                                splitPaste(in: line.id, newValue: newValue)
+                            }
+                            syncText()
                         }
-                        .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-            .frame(minHeight: ruleSpacing * 3, alignment: .topLeading)
-            .background(alignment: .top) {
-                VStack(spacing: ruleSpacing) {
-                    ForEach(0..<ruleCount, id: \.self) { _ in
-                        Rectangle().fill(Theme.noteLine).frame(height: 1)
+                        .padding(.vertical, 6)
+                        .overlay(alignment: .bottom) {
+                            Rectangle().fill(Theme.noteLine).frame(height: 1)
+                        }
                     }
                 }
-                .padding(.top, 20)
-            }
-            .clipped()
-
-            if isEditing {
                 HStack {
                     Spacer()
-                    Button("Save", action: onSave)
-                        .font(Theme.ui(15, weight: .semibold))
-                        .foregroundStyle(Theme.ink)
+                    Button("Save") {
+                        text = text.trimmingCharacters(in: .whitespacesAndNewlines)
+                        onSave()
+                    }
+                    .font(Theme.ui(15, weight: .semibold))
+                    .foregroundStyle(Theme.ink)
                 }
+            } else {
+                Button {
+                    isEditing = true
+                } label: {
+                    RuledNoteLines(
+                        lines: isEmpty ? ["Add a note"] : text.components(separatedBy: "\n"),
+                        placeholder: isEmpty,
+                        minRows: 1
+                    )
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
             }
         }
         .padding(Theme.Space.l)
@@ -246,24 +256,96 @@ private struct NoteEditor: View {
         )
         .onChange(of: isEditing) { _, editing in
             if editing {
-                focused = true
-            } else {
-                focused = false
-            }
-        }
-        .onChange(of: focused) { _, isFocused in
-            guard isFocused, let scrollProxy else { return }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                withAnimation(.easeOut(duration: 0.25)) {
-                    scrollProxy.scrollTo("note", anchor: .center)
+                beginEditing()
+                // Scroll once when the keyboard opens — not on every new line (that twitched).
+                if let scrollProxy {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                        withAnimation(.easeOut(duration: 0.25)) {
+                            scrollProxy.scrollTo("note", anchor: .center)
+                        }
+                    }
                 }
+            } else {
+                focusedLine = nil
             }
         }
     }
 
-    private var display: String {
-        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        return trimmed.isEmpty ? "Add a note" : trimmed
+    private func beginEditing() {
+        let parts = text.components(separatedBy: "\n")
+        let rows = parts.isEmpty ? [""] : parts
+        editLines = rows.map { NoteLine(id: UUID(), text: $0) }
+        focusedLine = editLines.first?.id
+    }
+
+    private func syncText() {
+        text = editLines.map(\.text).joined(separator: "\n")
+    }
+
+    private func submit(after id: UUID) {
+        guard let index = editLines.firstIndex(where: { $0.id == id }) else { return }
+        if editLines.count >= maxLines { return }
+        let newLine = NoteLine(id: UUID(), text: "")
+        var transaction = Transaction()
+        transaction.disablesAnimations = true
+        withTransaction(transaction) {
+            editLines.insert(newLine, at: index + 1)
+            syncText()
+            focusedLine = newLine.id
+        }
+    }
+
+    private func splitPaste(in id: UUID, newValue: String) {
+        guard let index = editLines.firstIndex(where: { $0.id == id }) else { return }
+        let pieces = newValue.components(separatedBy: "\n")
+        var transaction = Transaction()
+        transaction.disablesAnimations = true
+        withTransaction(transaction) {
+            editLines[index].text = pieces[0]
+            var inserted: [NoteLine] = []
+            for piece in pieces.dropFirst() {
+                guard editLines.count + inserted.count < maxLines else { break }
+                inserted.append(NoteLine(id: UUID(), text: piece))
+            }
+            if !inserted.isEmpty {
+                editLines.insert(contentsOf: inserted, at: index + 1)
+            }
+            if editLines.count > maxLines {
+                editLines = Array(editLines.prefix(maxLines))
+            }
+            if let last = inserted.last {
+                focusedLine = last.id
+            }
+        }
+    }
+}
+
+/// One blue rule under each text row so lines can't drift from the glyphs.
+private struct RuledNoteLines: View {
+    let lines: [String]
+    var placeholder: Bool = false
+    var minRows: Int = 1
+
+    var body: some View {
+        let rows = paddedRows
+        VStack(alignment: .leading, spacing: 0) {
+            ForEach(Array(rows.enumerated()), id: \.offset) { index, line in
+                Text(line.isEmpty ? " " : line)
+                    .font(Theme.ui(16))
+                    .foregroundStyle(placeholder && index == 0 ? Theme.faint : Theme.ink)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.vertical, 6)
+                    .overlay(alignment: .bottom) {
+                        Rectangle().fill(Theme.noteLine).frame(height: 1)
+                    }
+            }
+        }
+    }
+
+    private var paddedRows: [String] {
+        var rows = lines.isEmpty ? [""] : lines
+        while rows.count < minRows { rows.append("") }
+        return rows
     }
 }
 

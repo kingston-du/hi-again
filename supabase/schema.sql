@@ -12,9 +12,14 @@ create table if not exists public.profiles (
   first_name text not null,
   last_name text,
   badge_color text not null default 'red',
+  bio text,
   instagram text,
   snapchat text,
   linkedin text,
+  tiktok text,
+  phone text,
+  discord text,
+  email text,
   created_at timestamptz not null default now()
 );
 
@@ -208,7 +213,9 @@ begin
 
   select jsonb_build_object(
     'id', p.id, 'first_name', p.first_name, 'last_name', p.last_name, 'badge_color', p.badge_color,
-    'instagram', p.instagram, 'snapchat', p.snapchat, 'linkedin', p.linkedin
+    'bio', p.bio,
+    'instagram', p.instagram, 'snapchat', p.snapchat, 'linkedin', p.linkedin,
+    'tiktok', p.tiktok, 'phone', p.phone, 'discord', p.discord, 'email', p.email
   ) into v_profile
   from public.profiles p
   where p.id = v_card_user;

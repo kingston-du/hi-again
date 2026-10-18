@@ -16,3 +16,5 @@
 - You tap someone's card once: Person shows one "Where you met" section, and a repeat scan shows "You've met before" instead of a met-again count. The DB contract is unchanged (scan_card still returns times_met).
 - Design v3 replaces the violet look: paper/ink/stamp red, HELLO stickers, Archivo (static instances) + Caveat Brush + SF Pro, BadgeColor red/blue/green/yellow/pink/black. Live DB default is still 'lilac' until schema is re-run; the app always sends badge_color so it doesn't matter.
 - Husky ID gives a stable NFC ID (same short code on repeat scans, tested Sat 1:15 PM). Other cards not yet recorded.
+- Profile bio is freeform (≤160 chars), not structured school/grade. Optional contacts: Instagram, Snapchat, LinkedIn, TikTok, phone, Discord, email. Make badge needs first name only. Discord tap copies the username.
+- Stamp owns when (date/time in the center; place on the ring). Scan and Person still show a readable place line; no duplicate date copy beside the stamp.

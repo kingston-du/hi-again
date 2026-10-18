@@ -20,7 +20,7 @@
 ### The base MVP (this is the whole demo; build only this first)
 
 1. **Sign in** with Apple.
-2. **Make your badge:** first name, last name, a badge color, and up to three socials (Instagram, Snapchat, LinkedIn). At least one social.
+2. **Make your badge:** first name, last name, a badge color, optional short bio, and optional contacts (Instagram, Snapchat, LinkedIn, TikTok, phone, Discord, email). First name is enough.
 3. **Link your card:** scan your own card once.
 4. **Tap:** scan someone else's card. Their badge drops in on a violet screen, a "met at" stamp lands on it, and the meeting is saved for both of you with time and place.
 5. **Note:** one optional line on the result screen: "What do you want to remember?"
@@ -40,6 +40,7 @@ That's it: **6 screens** (Welcome, Make your badge, Link your card, People, Scan
 | A5 | **Events** (meetings grouped by place and day) | "Everyone I met at DubHacks" |
 | A6 | **Privacy** (pause scanning, hide a social, block someone) | Good answer to "isn't this creepy?" |
 | A7 | **Polish** (curved text on stamps, paper grain, a sound on tap) | Pure delight |
+| A9 | **Bio + optional contacts** (short bio; TikTok, phone, Discord, email) | School/year in freeform bio; more ways to reconnect |
 
 **Cut entirely (don't build, don't discuss):** map, voice notes, photo at scan, the 5-tab dock, notifications, Android, messaging.
 
@@ -98,15 +99,15 @@ Spacing scale: 4, 8, 12, 16, 24, 32. Radius: rows and badges 24, buttons fully r
 ### The screens
 
 1. **Welcome.** The wordmark `hi again` with a violet period. Headline: "Remember the *people* you meet." One tilted sample badge ("Maya") with a stamp on its corner. The **Sign in with Apple** button (black style).
-2. **Make your badge.** A live badge preview at the top that updates as you type. Fields for first name and last name, a row of six color dots, and Instagram, Snapchat and LinkedIn fields with "@" already shown. **Next** stays disabled until there's a first name and one social.
+2. **Make your badge.** A live badge preview at the top that updates as you type. Fields for first name and last name, a row of six color dots, a short optional bio (~160 chars), and optional contacts (Instagram, Snapchat, LinkedIn, TikTok, phone, Discord, email). **Next** stays disabled until there's a first name.
 3. **Link your card.** A simple drawing of a card held at the top of an iPhone. "Hold your student ID to the top of your phone." **Scan my card**, then the card's short code appears on your badge in mono (`CARD 4F2A`). Below: **Skip for now**.
 4. **People (home).** Title: "**12** people you've met" with the number in violet. A list of `.row` badges, newest first, each showing the first name, a mono line `HUB · SAT 2:14 PM`, and the note's first line in serif italic. A small circle in your badge color with your initial sits top right and opens Me; the TapButton floats at the bottom. Empty state: "Nobody yet. Tap a card to meet someone." with a hand-drawn arrow toward the Tap button.
-5. **Scan result** (full screen, the signature moment). The screen floods violet, the person's `.large` badge drops in on a spring, then the stamp thunks onto its corner with a success haptic. Then "You met *Maya*." in white, their social buttons, and a white index card: "What do you want to remember?" (one text field). **Done**.
+5. **Scan result** (full screen, the signature moment). The screen floods violet, the person's `.large` badge drops in on a spring, then the stamp thunks onto its corner with a success haptic. Then "You met *Maya*." in white, their bio if any, their contact buttons, and a white index card: "What do you want to remember?" (one text field). **Done**.
    - Already met: same screen, with a small "You've met before" line and their existing note in the card. No new meeting is shown (you only tap someone once).
    - Unknown card: butter background, a dashed empty badge with "?", "Not on the app yet." (Add-on A3 turns this into a pending meeting plus "Help them join".)
    - Your own card: "That's *you*."
    - Couldn't read: stay on People and show "Couldn't read that. Hold it near the top of your phone."
-6. **Person.** Their `.large` badge, their social buttons, then one "Where you met" section: a stamp, the place and time, and your note under it (tap to edit). A **…** menu with **Remove Maya**. Uses the person's newest meeting row; older rows (if any) are ignored.
+6. **Person.** Their `.large` badge, bio if any, their contact buttons, then one "Where you met" section: a stamp, the place and time, and your note under it (tap to edit). A **…** menu with **Remove Maya**. Uses the person's newest meeting row; older rows (if any) are ignored.
 7. **Me** (sheet). Your badge exactly as others see it, **Edit badge** (same fields as setup), "Your card: linked · 4F2A" with **Relink** and **Unlink**, and **Sign out**.
 
 ### Copy voice
@@ -155,11 +156,11 @@ Three tables. A meeting is stored **twice, once per person**, so each person own
 
 | Table | Columns | Rules (RLS) |
 |---|---|---|
-| `profiles` | `id uuid` PK = auth user id · `first_name text not null` · `last_name text` · `badge_color text not null default 'red'` · `instagram text` · `snapchat text` · `linkedin text` · `slug text unique` (8 lowercase alphanumeric; public QR meet link) · `created_at timestamptz default now()` | Read: your own, or anyone you have a meeting row with. Insert/update: your own only |
+| `profiles` | `id uuid` PK = auth user id · `first_name text not null` · `last_name text` · `badge_color text not null default 'red'` · `bio text` (≤160) · `instagram text` · `snapchat text` · `linkedin text` · `tiktok text` · `phone text` · `discord text` · `email text` · `slug text unique` (8 lowercase alphanumeric; public QR meet link) · `created_at timestamptz default now()` | Read: your own, or anyone you have a meeting row with. Insert/update: your own only |
 | `cards` | `card_hash text` PK · `user_id uuid unique` → profiles · `claimed_at timestamptz default now()` | No direct access at all. Only the RPC functions touch it |
 | `meetings` | `id uuid` PK default `gen_random_uuid()` · `owner_id uuid` → profiles · `other_id uuid` → profiles · `met_at timestamptz default now()` · `lat float8` · `lng float8` · `place_name text` · `note text` | Read, update and delete: only where `owner_id = auth.uid()`. Only the `note` column is updatable. No direct inserts (only `scan_card` / `meet_via_web` insert) |
 
-Handles are stored without "@". `card_hash` = SHA-256 hex of (`CARD_SALT` + the card UID as hex). The raw UID never leaves the phone.
+Handles are stored without "@". Phone is digits with optional leading `+`. Email is trimmed/lowercased. Bio is trimmed, max 160. All contacts and bio are optional. `card_hash` = SHA-256 hex of (`CARD_SALT` + the card UID as hex). The raw UID never leaves the phone.
 
 **Core database functions** (`security definer`, `set search_path = public`, executable by `authenticated`):
 
@@ -172,8 +173,8 @@ Handles are stored without "@". `card_hash` = SHA-256 hex of (`CARD_SALT` + the 
 
 **QR meet add-on** (paste `supabase/qr_meet.sql` after the base schema; Anonymous sign-ins must be on in Auth):
 
-- `public_badge(p_slug text) returns jsonb`. Executable by `anon` + `authenticated`. Returns only `first_name`, `last_name`, `badge_color`, socials for that slug, or `null` if missing. Never returns `id`.
-- `meet_via_web(p_slug, p_first_name, p_last_name, p_badge_color, p_instagram, p_snapchat, p_linkedin) returns jsonb`. Executable by `authenticated` (includes anonymous sessions). Upserts the caller's profile, inserts dual meeting rows with `place_name = 'QR code'` (2-minute dedupe like `scan_card`). Returns `{"status":"met"|"self"|"not_found"|"already",...}`.
+- `public_badge(p_slug text) returns jsonb`. Executable by `anon` + `authenticated`. Returns only `first_name`, `last_name`, `badge_color`, `bio`, contacts for that slug, or `null` if missing. Never returns `id`.
+- `meet_via_web(p_slug, p_first_name, p_last_name, p_badge_color, p_instagram, p_snapchat, p_linkedin, p_tiktok, p_phone, p_discord, p_email) returns jsonb`. Executable by `authenticated` (includes anonymous sessions). Upserts the caller's profile, inserts dual meeting rows with `place_name = 'QR code'` (2-minute dedupe like `scan_card`). Returns `{"status":"met"|"self"|"not_found"|"already",...}`.
 
 ### Swift contracts
 
@@ -182,7 +183,9 @@ enum BadgeColor: String, Codable, CaseIterable { case red, blue, green, yellow, 
 
 struct Profile: Codable, Identifiable, Hashable {
     let id: UUID; var firstName: String; var lastName: String?
-    var badgeColor: BadgeColor; var instagram: String?; var snapchat: String?; var linkedin: String?
+    var badgeColor: BadgeColor; var bio: String?
+    var instagram: String?; var snapchat: String?; var linkedin: String?
+    var tiktok: String?; var phone: String?; var discord: String?; var email: String?
     var slug: String?   // 8-char public meet code; assigned on save if missing
 }   // CodingKeys map to snake_case columns
 

@@ -1,9 +1,11 @@
 # Progress (update at the end of every session, then commit)
 
-Last updated: Sat 3:51 PM by Cursor
+Last updated: Sat 4:08 PM by Cursor
 
 ## Works now
-- Person note card: blue rules now run under every line (ruled index card), instead of one line cutting through the text. Builds clean.
+- **Simpler stamp composition:** stamp ring is place-only; date only in stamp center (no top/sidecar date). Readable place line kept on Scan and Person. Builds clean.
+- **A9 Bio + contacts:** optional short bio (≤160) and TikTok / phone / Discord / email on profiles. Make badge needs first name only. Person / scan / QR host show bio + filled contacts (Discord tap copies). Paste `supabase/profile_bio_contacts.sql` in SQL Editor to go live. Builds clean.
+- Person note card: edit + display use the same per-line ruled rows (return adds a line); one rule by default. Builds clean.
 - **A8 QR meet:** Me → **Let them scan** shows a QR + Share for `meet.html?b=<slug>`. `supabase/qr_meet.sql` adds `profiles.slug`, `public_badge`, `meet_via_web`. `web/meet.html` is a design-v3 HELLO sticker page with **Add Me** (anon sign-in). Builds clean. NFC demo path untouched.
 - Keyboard: tap outside any text field dismisses it (window-level); Make badge / Edit badge / Person note / Scan note scroll the focused field into view above the keyboard. Builds clean.
 - B5–B9 built on design v3: Welcome + Apple sign in, Make your badge, Link your card, People with Scan button → full-screen result, Person, Me. Builds clean; not yet run end to end on the phone
@@ -17,6 +19,7 @@ Last updated: Sat 3:51 PM by Cursor
 ## In progress
 - On-phone test of the demo path (needs Apple sign in + a second account with a linked card)
 - **A8 go-live left for kingston:** (1) paste `supabase/qr_meet.sql` in SQL Editor, (2) Auth → Providers → enable **Anonymous**. Steps 3–5 done: repo pushed, Pages = Actions, secrets set, `MEET_PAGE_BASE_URL` = `https://kingston-du.github.io/hi-again/meet.html`
+- **A9 go-live:** paste `supabase/profile_bio_contacts.sql` in Supabase SQL Editor (after qr_meet if not yet)
 
 ## Next
 - B10 bug bash, then CHECKPOINT
